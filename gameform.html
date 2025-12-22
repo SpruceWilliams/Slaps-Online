@@ -13,7 +13,11 @@
             <p>Fill out the form below to submit a new match.</p>
         </header>
         <main>
-            <form id="matchform">
+            <form
+            id="matchform"
+            method="post"
+            action="https://script.google.com/macros/s/AKfycbyVGZ4CAGnxiXJXwYvHR66megUtkTN1A4NWr0VlO4jMVlxgTBRobsTmQuS6k7ZqXvEF/exec"
+            >
                 <fieldset>
                     <legend>Match Information</legend>
                             <!--Input for Game Name-->
@@ -103,45 +107,6 @@
                 </script>
 
                 <button type="submit">Submit Match</button>
-                <script>
-                    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqQF2U_Ec1xk_6gYHh62J60oZnt-g2wpLMZrEqkyl-f8lGH6g5B1m1Lkr2qOXymue6/exec";
-
-                    const form = document.getElementById("matchform");
-
-                    form.addEventListener("submit", async (e) => {
-                    e.preventDefault(); // stop page reload
-
-                    const formData = new FormData(form);
-                    const data = Object.fromEntries(formData.entries());
-
-                    // Convert numeric fields
-                    [
-                        "player1games",
-                        "player2games",
-                        "player1slaps",
-                        "player2slaps",
-                        "player1yellow",
-                        "player2yellow",
-                        "player1red",
-                        "player2red"
-                    ].forEach(k => data[k] = Number(data[k]));
-
-                    try {
-                        const res = await fetch(SCRIPT_URL, {
-                        method: "POST",
-                        body: JSON.stringify(data)
-                        });
-
-                        const text = await res.text();
-                        console.log("RAW RESPONSE:", text);
-                        alert(text);
-
-                    } catch (err) {
-                        console.error(err);
-                        alert("Error submitting match");
-                    }
-                    });
-                </script>
                 
             </form>
         </main>
