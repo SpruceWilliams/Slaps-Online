@@ -1,3 +1,24 @@
+/*
+Colour Scheme Hex Codes
+Dark Green: #033220
+Forest Green: #024818
+Lighter Green: #026402
+Cherry Blossom Pink: #FFB7C6
+Charm Pink: #E78FAC
+Darker Pink: #D7789F
+*/
+
+
+
 h1{
-    color: pink;
+    color: #D7789F;
+}
+
+.hidden { display: none; }
+.confirmation {
+  background: #eef9f0;
+  border: 1px solid #024818;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 12px;
 }

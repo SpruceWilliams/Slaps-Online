@@ -3,83 +3,151 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Slaps Online: Game Submission Form</title>
+        <title>Slaps Online: Match Submission Form</title>
         <link rel="stylesheet" href="styles.css">
     </head>
 
     <body>
         <header>
-            <h1>Submit a New Game to the Official Slaps Database</h1>
-            <p>Fill out the form below to submit a new game.</p>
+            <h1>Submit a New Match to the Official Slaps Database</h1>
+            <p>Fill out the form below to submit a new match.</p>
         </header>
         <main>
-            <form action="">
+            <form id="matchform">
                 <fieldset>
-                    <legend>Game Information</legend>
+                    <legend>Match Information</legend>
                             <!--Input for Game Name-->
-                            <label for "date">Date of Game:</label>
+                            <label for="date">Date of Game:</label>
                             <input required type="date" id="date" name="date">
 
                             <!--Input for Player 1 Full Name-->
-                            <label for "player1fullname">Player 1 Full Name:</label>
-                            <input required type="text" id="player1fullname" name="player1fullname">
+                            <label for="player1fullname">Player 1 Full Name:</label>
+                            <input required type="text" id="player1fullname" name="player1">
 
                             <!--Input for Player 2 Full Name-->
-                            <label for "player2fullname">Player 2 Full Name:</label>
-                            <input required type="text" id="player2fullname" name="player2fullname">
+                            <label for="player2fullname">Player 2 Full Name:</label>
+                            <input required type="text" id="player2fullname" name="player2">
+
+                            <!--Input for Winner Name-->
+                            <select name="winnername" required>
+                            <option value="">Select winner</option>
+                            <option value="PLAYER_1_NAME">Player 1</option>
+                            <option value="PLAYER_2_NAME">Player 2</option>
+                            </select>
 
                             <!--Input for Player 1 Games-->
-                            <label for "player1games">Player 1 Games Won:</label>
+                            <label for="player1games">Player 1 Games Won:</label>
                             <input required type="number" id="player1games" name="player1games">
 
                             <!--Input for Player 2 Games-->
-                            <label for "player2games">Player 2 Games Won:</label>
+                            <label for="player2games">Player 2 Games Won:</label>
                             <input required type="number" id="player2games" name="player2games">
 
                             <!--Input for Player 1 Slaps Won-->
-                            <label for "player1slaps">Player 1 Slaps Won:</label>
+                            <label for="player1slaps">Player 1 Slaps Won:</label>
                             <input required type="number" id="player1slaps" name="player1slaps">
 
                             <!--Input for Player 2 Slaps Won-->
-                            <label for "player2slaps">Player 2 Slaps Won:</label>
+                            <label for="player2slaps">Player 2 Slaps Won:</label>
                             <input required type="number" id="player2slaps" name="player2slaps">
 
                             <!--Input for Player 1 Yellow Cards-->
-                            <label for "player1yellow">Player 1 Yellow Cards:</label>
+                            <label for="player1yellow">Player 1 Yellow Cards:</label>
                             <input required type="number" id="player1yellow" name="player1yellow">
 
                             <!--Input for Player 2 Yellow Cards-->
-                            <label for "player2yellow">Player 2 Yellow Cards:</label>
+                            <label for="player2yellow">Player 2 Yellow Cards:</label>
                             <input required type="number" id="player2yellow" name="player2yellow">
 
                             <!--Input for Player 1 Red Cards-->
-                            <label for "player1red">Player 1 Red Cards:</label> 
+                            <label for="player1red">Player 1 Red Cards:</label> 
                             <input required type="number" id="player1red" name="player1red">
 
                             <!--Input for Player 2 Red Cards-->
-                            <label for "player2red">Player 2 Red Cards:</label>
+                            <label for="player2red">Player 2 Red Cards:</label>
                             <input required type="number" id="player2red" name="player2red">
 
                             <!--Input for Referee Name-->
-                            <label for "refname">Referee Name (Input "NA" for friendly matches):</label>
+                            <label for="refname">Referee Name (Input "NA" for friendly matches):</label>
                             <input required type="text" id="refname" name="refname">
 
-                            <!--Input for Game Type (e.g., 1v1, 2v2)-->
-                            <label for "gametype">Game Type:</label>
-                            <select id="gametype" name="gametype" required>
+                            <!--Input for Match Type (e.g., 1v1, 2v2)-->
+                            <label for="matchtype">Match Type:</label>
+                            <select id="matchtype" name="matchtype" required>
                                 <option value="friendly">Friendly</option>
                                 <option value="headtohead">Head-to-Head</option>
                                 <option value="tournament">Tournament Game</option>
                             </select>
 
                             <!--Input for Competition Name-->
-                            <label for "competitionname">Competition Name:</label>
+                            <label for="competitionname">Competition Name:</label>
                             <input required type="text" id="competitionname" name="competitionname" placeholder="E.g., Tennents 2025 Slaps World Championship">
-">
+
 
                 </fieldset>
-                <!--Button to Submit the Game. Currently no associated js-->
-                <button type="submit">Submit Game</button>
+                <script>
+                    const p1Input = document.getElementById("player1fullname");
+                    const p2Input = document.getElementById("player2fullname");
+                    const winnerSelect = document.querySelector("select[name='winnername']");
+
+                    function updateWinnerOptions() {
+                    winnerSelect.innerHTML = `
+                        <option value="">Select winner</option>
+                        <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
+                        <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
+                    `;
+                    }
+
+                    p1Input.addEventListener("input", updateWinnerOptions);
+                    p2Input.addEventListener("input", updateWinnerOptions);
+                </script>
+
+                <button type="submit">Submit Match</button>
+                <script>
+                    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7OPSDNJhVEA1EMPA0W_EDuOKUdCHoBYIqh3UECU-214_PaWUFyaJipEJcpHZJvYDn/exec";
+
+                    const form = document.getElementById("matchform");
+
+                    form.addEventListener("submit", async (e) => {
+                    e.preventDefault(); // stop page reload
+
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+
+                    // Convert numeric fields
+                    [
+                        "player1games",
+                        "player2games",
+                        "player1slaps",
+                        "player2slaps",
+                        "player1yellow",
+                        "player2yellow",
+                        "player1red",
+                        "player2red"
+                    ].forEach(k => data[k] = Number(data[k]));
+
+                    try {
+                        const res = await fetch(SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" }
+                        });
+
+                        const result = await res.json();
+
+                        if (result.success) {
+                        alert(`Match submitted! Match ID: ${result.matchId}`);
+                        form.reset();
+                        } else {
+                        alert("Submission failed");
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                        alert("Error submitting match");
+                    }
+                    });
+                </script>
                 
             </form>
         </main>
