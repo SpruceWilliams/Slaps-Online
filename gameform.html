@@ -133,14 +133,9 @@
                         headers: { "Content-Type": "application/json" }
                         });
 
-                        const result = await res.json();
-
-                        if (result.success) {
-                        alert(`Match submitted! Match ID: ${result.matchId}`);
-                        form.reset();
-                        } else {
-                        alert("Submission failed");
-                        }
+                        const text = await res.text();
+                        console.log("RAW RESPONSE:", text);
+                        alert(text);
 
                     } catch (err) {
                         console.error(err);
