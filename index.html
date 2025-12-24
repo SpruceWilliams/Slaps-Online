@@ -14,7 +14,24 @@
 
                 <p> Read the Official Rulebook <a href="rules_compressed.pdf">here</a>.</p>
 
-            <h2>Current World Rankings</h2>
+            <section>
+                <h2>Current World Rankings</h2>
+                <div id="elo-top">Loading ratings…</div>
+            </section>
+
+                <!-- Config FIRST -->
+                <script src="js/config.js"></script>
+
+                <!-- Ratings logic -->
+                <script src="js/ratings.js"></script>
+
+                <!-- Page-specific init -->
+                <script>
+                    fetchRatings(6).then(ratings => {
+                    renderRatings("elo-top", ratings);
+                    });
+                </script>
+
 
             <h2>Official Slaps Database of Matches</h2>
 
