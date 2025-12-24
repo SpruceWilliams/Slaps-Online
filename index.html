@@ -20,16 +20,16 @@
             </section>
 
                 <!-- Config FIRST -->
-                <script src="js/config.js"></script>
+                <script src="js/config.js" defer></script>
 
                 <!-- Ratings logic -->
-                <script src="js/ratings.js"></script>
+                <script src="js/ratings.js" defer></script>
 
                 <!-- Page-specific init -->
-                <script>
-                    fetchRatings(6).then(ratings => {
+                <script defer>
+                fetchRatings(6).then(ratings => {
                     renderRatings("elo-top", ratings);
-                    });
+                });
                 </script>
 
 
