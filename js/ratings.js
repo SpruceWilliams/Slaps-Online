@@ -12,23 +12,27 @@ function renderRatings(containerId, ratings) {
   if (!container) return;
 
   container.innerHTML = `
+  <div class="elo-table-wrapper">
     <table class="elo-table">
       <thead>
         <tr>
           <th>#</th>
           <th>Player</th>
           <th>Elo</th>
+          <th>Games Played</th>
         </tr>
       </thead>
       <tbody>
         ${ratings.map((r, i) => `
           <tr>
             <td>${i + 1}</td>
-            <td>${r.player}</td>
+            <td>${r.player_name}</td>
             <td>${Math.round(r.elo)}</td>
+            <td>${r.games_played}</td>
           </tr>
         `).join("")}
       </tbody>
     </table>
+    </div>
   `;
 }
