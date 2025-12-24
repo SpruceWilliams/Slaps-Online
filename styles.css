@@ -23,6 +23,37 @@ h1{
   margin-top: 12px;
 }
 
+/* ===== Header ===== */
+.site-header {
+    background-color: #024818; /* Forest Green */
+    padding: 12px 24px;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.site-logo {
+    height: 48px;
+    width: auto;
+}
+
+.site-title {
+    color: #FFB7C6; /* Cherry Blossom Pink */
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+/* Push page content away from header */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
 
 /* Form Styles */
 .form-group {
@@ -98,7 +129,7 @@ input:invalid {
   white-space: nowrap;
 }
 
-elo-table th,
+.elo-table th,
 .elo-table td {
     text-align: center;
 }
@@ -108,3 +139,69 @@ elo-table th,
     overflow-x: auto;
   }
 }
+
+/* Match Table Styles */
+
+.match-table-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.match-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.match-table th,
+.match-table td {
+  padding: 0.6rem 0.8rem;
+}
+
+.match-table thead {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+
+.match-table td,
+.match-table th {
+  white-space: nowrap;
+}
+
+.match-table th,
+.match-table td {
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+  .match-table-wrapper {
+    overflow-x: auto;
+  }
+}
+
+/* Form Confirmation Styles */
+
+.hidden {
+  display: none;
+}
+
+#confirmation {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4caf50;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 9999;
+}
+
+#confirmation.show {
+  opacity: 1;
+}
+
