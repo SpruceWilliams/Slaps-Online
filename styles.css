@@ -67,3 +67,18 @@ input:focus {
 input:invalid {
   border-color: #dc2626;
 }
+
+/* ELO Table Styles */
+
+.elo-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.elo-table-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden; /* clips rounded corners */
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
