@@ -70,15 +70,36 @@ input:invalid {
 
 /* ELO Table Styles */
 
+.elo-table-wrapper {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
 .elo-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.elo-table-wrapper {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden; /* clips rounded corners */
-  background: #fff;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+.elo-table th,
+.elo-table td {
+  padding: 0.6rem 0.8rem;
+}
+
+.elo-table thead {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+
+.elo-table td,
+.elo-table th {
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .elo-table-wrapper {
+    overflow-x: auto;
+  }
 }
