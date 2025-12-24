@@ -1,4 +1,5 @@
 console.log("ratings.js loaded");
+console.log("API in ratings.js:", window.API);
 
 function fetchRatings(limit) {
   const url = new URL(API.BASE);
