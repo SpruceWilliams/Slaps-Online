@@ -27,8 +27,10 @@
 
                 <!-- Page-specific init -->
                 <script defer>
-                fetchRatings(6).then(ratings => {
+                document.addEventListener("DOMContentLoaded", () => {
+                    fetchRatings(6).then(ratings => {
                     renderRatings("elo-top", ratings);
+                    });
                 });
                 </script>
 

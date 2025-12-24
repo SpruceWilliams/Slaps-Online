@@ -1,4 +1,3 @@
-
 function fetchRatings(limit) {
   const url = new URL(API.BASE);
   url.search = new URLSearchParams({ action: "ratings", limit });
@@ -7,7 +6,7 @@ function fetchRatings(limit) {
 
 function renderRatings(containerId, ratings) {
   const container = document.getElementById(containerId);
-  if (!container) return; // important
+  if (!container) return;
 
   container.innerHTML = `
     <table class="elo-table">
