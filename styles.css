@@ -96,7 +96,11 @@ input:invalid {
 .elo-table td,
 .elo-table th {
   white-space: nowrap;
-  text-align: center;
+}
+
+elo-table th,
+.elo-table td {
+    text-align: center;
 }
 
 @media (max-width: 480px) {
