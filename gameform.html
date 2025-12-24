@@ -16,22 +16,24 @@
             <form
             id="matchform"
             method="post"
-            action="https://script.google.com/macros/s/AKfycbxtRatx4QZ_GuOC9fuw1a11kGqpd3RZp3tb-rOonvs0Gstv3wVNjaHf2D56pwFvlYQj/exec"
-            >
-                <fieldset>
-                    <legend>Match Information</legend>
+            action="https://script.google.com/macros/s/AKfycbxtRatx4QZ_GuOC9fuw1a11kGqpd3RZp3tb-rOonvs0Gstv3wVNjaHf2D56pwFvlYQj/exec">
+                <fieldset><legend>Player Information</legend>
+                    <div class="form-group">
                             <!--Input for Game Name-->
-                            <label for="date">Date of Game:</label>
-                            <input required type="date" id="date" name="date">
+                            <label for="date">Date of Game: <input required type="date" id="date" name="date"> </label>
+                            
 
                             <!--Input for Player 1 Full Name-->
-                            <label for="player1fullname">Player 1 Full Name:</label>
-                            <input required type="text" id="player1fullname" name="player1">
+                            <label for="player1fullname">Player 1 Full Name: <input required type="text" id="player1fullname" name="player1"></label>
+                            
 
                             <!--Input for Player 2 Full Name-->
-                            <label for="player2fullname">Player 2 Full Name:</label>
-                            <input required type="text" id="player2fullname" name="player2">
+                            <label for="player2fullname">Player 2 Full Name:  <input required type="text" id="player2fullname" name="player2"></label>
+                    </div>
+                </fieldset>
 
+                <fieldset><legend>Match Results</legend>
+                    <div class="form-group">                      
                             <!--Input for Winner Name-->
                             <select name="winnername" required>
                             <option value="">Select winner</option>
@@ -70,7 +72,11 @@
                             <!--Input for Player 2 Red Cards-->
                             <label for="player2red">Player 2 Red Cards:</label>
                             <input required type="number" id="player2red" name="player2red">
-
+                    </div>
+                </fieldset>
+                
+                <fieldset><legend>Match Details</legend>
+                     <div class="form-group">
                             <!--Input for Referee Name-->
                             <label for="refname">Referee Name (Input "NA" for friendly matches):</label>
                             <input required type="text" id="refname" name="refname">
@@ -86,9 +92,9 @@
                             <!--Input for Competition Name-->
                             <label for="competitionname">Competition Name:</label>
                             <input required type="text" id="competitionname" name="competitionname" placeholder="E.g., Tennents 2025 Slaps World Championship">
-
-
+                    </div>
                 </fieldset>
+
                 <script>
                     const p1Input = document.getElementById("player1fullname");
                     const p2Input = document.getElementById("player2fullname");
