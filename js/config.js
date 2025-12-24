@@ -1,3 +1,4 @@
-const APPS_SCRIPT = {
-  BASE_URL: "https://script.google.com/macros/s/AKfycbxO9lWeFfz0mH4Spw5zQ67wsN3I1hpoHB89fkRJQ0ve9QsSL5j-FMrU09c7c-M2-s-o/exec"
+// js/config.js
+window.API = {
+  BASE: "https://script.google.com/macros/s/AKfycbxtRatx4QZ_GuOC9fuw1a11kGqpd3RZp3tb-rOonvs0Gstv3wVNjaHf2D56pwFvlYQj/exec"
 };
