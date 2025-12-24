@@ -1,3 +1,5 @@
+console.log("ratings.js loaded");
+
 function fetchRatings(limit) {
   const url = new URL(API.BASE);
   url.search = new URLSearchParams({ action: "ratings", limit });
