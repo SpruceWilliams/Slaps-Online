@@ -3,7 +3,9 @@ console.log("API in ratings.js:", window.API);
 
 function fetchRatings(limit) {
   const url = new URL(API.BASE);
-  url.search = new URLSearchParams({ action: "ratings", limit });
+  const params = new URLSearchParams({ action: "ratings" });
+  if (limit != null) params.set("limit", limit);
+  url.search = params;
   return fetch(url).then(r => r.json());
 }
 
@@ -11,6 +13,7 @@ function renderRatings(containerId, ratings) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
+  console.log("Rendering ratings:", ratings);
   container.innerHTML = `
   <div class="elo-table-wrapper">
     <table class="elo-table">
