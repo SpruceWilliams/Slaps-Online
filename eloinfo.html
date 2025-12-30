@@ -60,8 +60,10 @@
                         The player's "old" rating is 1000 for new players, but is likely to be different to that if the player has already played rated matches.<br>
 
                         The K-Factor is a number that determines the maximum amount by which a player's rating can change after a match.<br>
-                        For new players, the K-Factor is 32, meaning that their rating can change by a maximum of 32 points after a match.
+                        For new players ("rookies"), the K-Factor is 64, meaning that their rating can change by a maximum of 64 points after a match. After 5 rated games, the K-factor drops to 32.
                         After a player has played 32 rated matches, their K-Factor decreases to 16, meaning that their rating can change by a maximum of 16 points after a match.
+                        After 64 games, the K-factor drops again to 8. The idea is that rating gets less and less volatile as a player's rating becomes more accurate in reflecting their true skill level.
+                        In addition, when anyone plays against a "rookie" opponent, their K-factor is halved for that match, to reflect the greater uncertainty in the rookie's rating.
                     </p>
 
                     <p>
