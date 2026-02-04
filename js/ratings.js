@@ -9,6 +9,17 @@ function fetchRatings(limit) {
   return fetch(url).then(r => r.json());
 }
 
+function countryCodeToFlag(code) {
+  if (!code || code.length !== 2) return "🇬🇧"; // default UK
+
+  return code
+    .toUpperCase()
+    .replace(/./g, char =>
+      String.fromCodePoint(127397 + char.charCodeAt())
+    );
+}
+
+
 function renderRatings(containerId, ratings) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -30,7 +41,7 @@ function renderRatings(containerId, ratings) {
             <tr>
               <td>${i + 1}</td>
               <td>
-                <span class="flag">${r.flag || "🇬🇧"}</span>
+                <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
                 <span class="player-name">${r.player_name}</span>
               </td>
               <td>${Math.round(r.elo)}</td>
