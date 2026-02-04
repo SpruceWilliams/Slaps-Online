@@ -29,13 +29,13 @@
                             <!--Input for Player 1 Full Name-->
                             <label for="player1fullname">
                             Player 1 Full Name:
-                            <input required type="text" id="player1fullname" name="player1" list="playersList" autocomplete="off">
+                            <input required type="text" id="player1fullname" name="player1" list="playersList">
                             </label>
 
                             <!--Input for Player 2 Full Name-->
                             <label for="player2fullname">
                             Player 2 Full Name:
-                            <input required type="text" id="player2fullname" name="player2" list="playersList" autocomplete="off">
+                            <input required type="text" id="player2fullname" name="player2" list="playersList">
                             </label>
                     </div>
                 </fieldset>
@@ -112,6 +112,37 @@
 
             <datalist id="playersList"></datalist>
 
+            <!--Test-->
+            <script>
+            // JSONP callback must be GLOBAL for Apps Script to call it
+            window.handlePlayersList = function(names) {
+                const dl = document.getElementById("playersList");
+                dl.innerHTML = "";
+
+                (names || []).forEach(n => {
+                const opt = document.createElement("option");
+                opt.value = n;
+                dl.appendChild(opt);
+                });
+
+                console.log("Players loaded:", dl.children.length); // <-- debug
+            };
+
+            (function loadPlayers() {
+                const base = window.API && window.API.BASE;
+                if (!base) {
+                console.error("window.API.BASE not found. Is config.js loaded?");
+                return;
+                }
+
+                // cache-bust so you don't get an old script response
+                const script = document.createElement("script");
+                script.src = `${base}?action=players&callback=handlePlayersList&_=${Date.now()}`;
+                script.onerror = () => console.error("Players JSONP failed to load");
+                document.head.appendChild(script);
+            })();
+            </script>
+            <!-- Script -->
             <script>
                 document.addEventListener("DOMContentLoaded", () => {
                     // --- Guard: config.js must be loaded ---

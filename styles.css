@@ -206,3 +206,7 @@ input:invalid {
   opacity: 1;
 }
 
+fieldset, .form-group, form, main {
+  overflow: visible !important;
+}
+
