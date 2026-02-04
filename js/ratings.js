@@ -13,29 +13,34 @@ function renderRatings(containerId, ratings) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  console.log("Rendering ratings:", ratings);
   container.innerHTML = `
-  <div class="elo-table-wrapper">
-    <table class="elo-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Player</th>
-          <th>Elo</th>
-          <th>Games Played</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${ratings.map((r, i) => `
+    <div class="elo-table-wrapper">
+      <table class="elo-table">
+        <thead>
           <tr>
-            <td>${i + 1}</td>
-            <td>${r.player_name}</td>
-            <td>${Math.round(r.elo)}</td>
-            <td>${r.games_played}</td>
+            <th>#</th>
+            <th>Player</th>
+            <th>Elo</th>
+            <th>Games Played</th>
+            <th>Form (last 5)</th>
           </tr>
-        `).join("")}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${ratings.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>
+                <span class="flag">${r.flag || "🇬🇧"}</span>
+                <span class="player-name">${r.player_name}</span>
+              </td>
+              <td>${Math.round(r.elo)}</td>
+              <td>${r.games_played}</td>
+              <td class="form5">${r.form5 || "-----"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
     </div>
   `;
 }
+
