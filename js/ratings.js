@@ -50,5 +50,8 @@ function renderRatings(containerId, ratings) {
       </table>
     </div>
   `;
+  if (window.twemoji) {
+    window.twemoji.parse(container, { folder: "svg", ext: ".svg" });
+  }
 }
 
