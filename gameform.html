@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Slaps Online: Match Submission Form</title>
         <link rel="stylesheet" href="styles.css">
+        <script src="js/config.js"></script>
     </head>
 
     <body>
@@ -18,22 +19,24 @@
         
         <main>
             <h2>Fill out the form below to submit a new match.</h2>
-            <form
-            id="matchform"
-            method="post"
-            action="https://script.google.com/macros/s/AKfycbyBLUReHX1fVdPnA3Z1OjyEhzMC6Xvtg2lb_OFJ37QkD8rhKPGiLZufoIGLiNF_vxpo/exec">
+            <form id="matchform" method="post">
                 <fieldset><legend>Player Information</legend>
                     <div class="form-group">
                             <!--Input for Game Name-->
-                            <label for="date">Date of Game: <input required type="date" id="date" name="date"> </label>
+                            <label for="date">Date of Match: <input required type="date" id="date" name="date"> </label>
                             
 
                             <!--Input for Player 1 Full Name-->
-                            <label for="player1fullname">Player 1 Full Name: <input required type="text" id="player1fullname" name="player1"></label>
-                            
+                            <label for="player1fullname">
+                            Player 1 Full Name:
+                            <input required type="text" id="player1fullname" name="player1" list="playersList" autocomplete="off">
+                            </label>
 
                             <!--Input for Player 2 Full Name-->
-                            <label for="player2fullname">Player 2 Full Name:  <input required type="text" id="player2fullname" name="player2"></label>
+                            <label for="player2fullname">
+                            Player 2 Full Name:
+                            <input required type="text" id="player2fullname" name="player2" list="playersList" autocomplete="off">
+                            </label>
                     </div>
                 </fieldset>
 
@@ -47,11 +50,11 @@
                             </select>
 
                             <!--Input for Player 1 Games-->
-                            <label for="player1games">Player 1 Games Won:</label>
+                            <label for="player1games">Player 1 Rounds Won:</label>
                             <input required type="number" id="player1games" name="player1games">
 
                             <!--Input for Player 2 Games-->
-                            <label for="player2games">Player 2 Games Won:</label>
+                            <label for="player2games">Player 2 Rounds Won:</label>
                             <input required type="number" id="player2games" name="player2games">
 
                             <!--Input for Player 1 Slaps Won-->
@@ -90,9 +93,9 @@
                             <!--Input for Match Type (e.g., 1v1, 2v2)-->
                             <label for="matchtype">Match Type:</label>
                             <select id="matchtype" name="matchtype" required>
-                                <option value="friendly">Friendly</option>
-                                <option value="headtohead">Head-to-Head</option>
-                                <option value="tournament">Tournament Game</option>
+                                <option value="friendly">Friendly (Unrated)</option>
+                                <option value="headtohead">Head-to-Head (Rated)</option>
+                                <option value="tournament">Tournament Match (Rated)</option>
                             </select>
 
                             <!--Input for Competition Name-->
@@ -105,7 +108,14 @@
                 <input type="hidden" name="request_id" id="request_id" />
 
                 <button type="submit" id="submitBtn">Submit Match</button>
-                </form>
+            </form>
+
+            <script>
+            // Ensure config.js has loaded
+            const form = document.getElementById("matchform");
+            form.action = window.API.BASE;
+            </script>
+
 
             <script>
 
@@ -169,4 +179,38 @@
                 });
             </script>
         </main>
+
+    <datalist id="playersList"></datalist>
+
+    <script>
+        // Wait until DOM exists
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1) Set form action from config.js
+            const form = document.getElementById("matchform");
+            form.action = window.API.BASE;
+
+            // 2) Enable datalist suggestions on both inputs
+            const p1 = document.getElementById("player1fullname");
+            const p2 = document.getElementById("player2fullname");
+            p1.setAttribute("list", "playersList");
+            p2.setAttribute("list", "playersList");
+
+            // 3) JSONP callback for Apps Script
+            window.handlePlayersList = function(names) {
+            const dl = document.getElementById("playersList");
+            dl.innerHTML = "";
+            names.forEach(name => {
+                const opt = document.createElement("option");
+                opt.value = name;
+                dl.appendChild(opt);
+            });
+            };
+
+            // 4) Load players via JSONP using config BASE
+            const script = document.createElement("script");
+            script.src = `${window.API.BASE}?action=players&callback=handlePlayersList`;
+            document.head.appendChild(script);
+        });
+    </script>
+
     </body>
