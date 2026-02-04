@@ -31,3 +31,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+function fetchCompetitions(limit = 10) {
+  const url = new URL(API.BASE);
+  url.search = new URLSearchParams({ action: "competitions", limit });
+  return fetch(url).then(r => r.json());
+}
+
+function renderCompetitions(containerId, comps) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = `
+    <ul>
+      ${comps.map(c => `
+        <li>
+          <a href="competition.html?comp=${encodeURIComponent(c.competition_name)}">
+            ${c.competition_name}
+          </a>
+        </li>
+      `).join("")}
+    </ul>
+  `;
+}
+
+// call on page load
+fetchCompetitions(10).then(comps => renderCompetitions("recentCompetitions", comps));
+
