@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-function fetchCompetitions(limit = 10) {
+function fetchCompetitions(limit = 20) {
   const url = new URL(API.BASE);
   url.search = new URLSearchParams({ action: "competitions", limit });
   return fetch(url).then(r => r.json());
