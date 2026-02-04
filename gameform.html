@@ -21,7 +21,7 @@
             <form
             id="matchform"
             method="post"
-            action="https://script.google.com/macros/s/AKfycbxQjQeOqcm6X95ztjgUB7V9Kqc1vzy1S9jrnKzMaL30XT87_7T5tcG_djho23RvBI1S/exec">
+            action="https://script.google.com/macros/s/AKfycbyBLUReHX1fVdPnA3Z1OjyEhzMC6Xvtg2lb_OFJ37QkD8rhKPGiLZufoIGLiNF_vxpo/exec">
                 <fieldset><legend>Player Information</legend>
                     <div class="form-group">
                             <!--Input for Game Name-->
@@ -100,26 +100,73 @@
                             <input required type="text" id="competitionname" name="competitionname" placeholder="E.g., Tennents 2025 Slaps World Championship">
                     </div>
                 </fieldset>
+                
+                <!-- Hidden idempotency key (an operation can be performed multiple times without changing the result) -->
+                <input type="hidden" name="request_id" id="request_id" />
 
-                <script>
-                    const p1Input = document.getElementById("player1fullname");
-                    const p2Input = document.getElementById("player2fullname");
-                    const winnerSelect = document.querySelector("select[name='winnername']");
+                <button type="submit" id="submitBtn">Submit Match</button>
+                </form>
 
-                    function updateWinnerOptions() {
+            <script>
+
+                // Winner option code...
+                const p1Input = document.getElementById("player1fullname");
+                const p2Input = document.getElementById("player2fullname");
+                const winnerSelect = document.querySelector("select[name='winnername']");
+                function updateWinnerOptions() {
                     winnerSelect.innerHTML = `
-                        <option value="">Select winner</option>
-                        <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
-                        <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
+                    <option value="">Select winner</option>
+                    <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
+                    <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
                     `;
+                }
+                p1Input.addEventListener("input", updateWinnerOptions);
+                p2Input.addEventListener("input", updateWinnerOptions);
+
+                // --- NEW: one-shot submit + redirect ---
+                const form = document.getElementById("matchform");
+                const btn = document.getElementById("submitBtn");
+                const requestIdInput = document.getElementById("request_id");
+                let submitting = false;
+
+                form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    if (submitting) return;
+
+                    submitting = true;
+                    btn.disabled = true;
+                    const oldText = btn.textContent;
+                    btn.textContent = "Submitting...";
+
+                    // Idempotency token for this submission
+                    requestIdInput.value =
+                    (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+
+                    try {
+                    const resp = await fetch(form.action, {
+                        method: "POST",
+                        body: new FormData(form),
+                    });
+
+                    const result = await resp.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || "Unknown error");
                     }
 
-                    p1Input.addEventListener("input", updateWinnerOptions);
-                    p2Input.addEventListener("input", updateWinnerOptions);
-                </script>
+                    // Redirect on GitHub Pages (repo pages): /Slaps-Online/...
+                    const base = location.pathname.includes("/Slaps-Online/") ? "/Slaps-Online" : "";
+                    window.location.href = `${base}/submitted.html?matchId=${encodeURIComponent(result.matchId)}`;
 
-                <button type="submit">Submit Match</button>
-                
-            </form>
+                    } catch (err) {
+                    alert("Submission failed: " + err.message);
+
+                    // allow retry
+                    submitting = false;
+                    btn.disabled = false;
+                    btn.textContent = oldText;
+                    }
+                });
+            </script>
         </main>
     </body>
