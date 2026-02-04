@@ -38,7 +38,7 @@ function renderRatings(containerId, ratings) {
             <tr>
               <td>${i + 1}</td>
               <td>
-                <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
+                <span class="flag">😀</span>
                 <span class="player-name">${r.player_name}</span>
               </td>
               <td>${Math.round(r.elo)}</td>
