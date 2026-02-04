@@ -37,10 +37,10 @@ function renderRatings(containerId, ratings) {
           ${ratings.map((r, i) => `
             <tr>
               <td>${i + 1}</td>
-              <td>
-                <span class="flag">😀</span>
-                <span class="player-name">${r.player_name}</span>
-              </td>
+                <td>
+                  <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
+                  <span class="player-name">${r.player_name}</span>
+                </td>
               <td>${Math.round(r.elo)}</td>
               <td>${r.games_played}</td>
               <td class="form5">${r.form5 || "-----"}</td>
