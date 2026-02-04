@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-function fetchCompetitions(limit = 20) {
+function fetchCompetitions(limit = 40) {
   const url = new URL(API.BASE);
   url.search = new URLSearchParams({ action: "competitions", limit });
   return fetch(url).then(r => r.json());
@@ -56,5 +56,5 @@ function renderCompetitions(containerId, comps) {
 }
 
 // call on page load
-fetchCompetitions(20).then(comps => renderCompetitions("recentCompetitions", comps));
+fetchCompetitions(40).then(comps => renderCompetitions("recentCompetitions", comps));
 
