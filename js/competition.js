@@ -254,10 +254,10 @@ function renderStandings(standings, flagMap) {
           ${standings.map((s, i) => `
             <tr>
               <td>${i + 1}</td>
-              <td>
+                <td>
                 <span class="flag">${countryCodeToFlag(flagMap[s.player] || "GB")}</span>
                 <a class="player-link" href="player.html?player=${encodeURIComponent(s.player)}">${s.player}</a>
-              </td>
+                </td>
               <td>${s.wins}–${s.losses}</td>
               <td>${s.matches}</td>
               <td>${s.gamesFor}/${s.gamesAgainst}</td>
@@ -314,10 +314,10 @@ function renderPlayerCards(standings, flagMap) {
       <tr>
         <td>${r.no}</td>
         <td>${formatDate(r.date)}</td>
-        <td>
-          <span class="flag">${countryCodeToFlag(flagMap[r.opp] || "GB")}</span>
-          ${r.opp}
-        </td>
+            <td>
+            <span class="flag">${countryCodeToFlag(flagMap[r.opp] || "GB")}</span>
+            ${r.opp}
+            </td>
         <td>${r.oppRating != null ? Math.round(r.oppRating) : "-"}</td>
         <td>${r.res}</td>
         <td>${r.games}</td>
