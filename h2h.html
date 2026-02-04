@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Head-to-Head</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <p><a href="index.html">← Back to ratings</a></p>
+
+    <h1>Head-to-Head</h1>
+
+    <div id="loadingIndicator" class="loading" style="display:none;">
+      <div class="spinner"></div>
+      <span>Loading head-to-head…</span>
+    </div>
+
+    <div class="card" style="margin: 12px 0;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+          <label>Player A</label><br>
+          <input id="pA" list="playersList" placeholder="Type a name…" style="min-width:220px;">
+        </div>
+        <div>
+          <label>Player B</label><br>
+          <input id="pB" list="playersList" placeholder="Type a name…" style="min-width:220px;">
+        </div>
+
+        <label class="toggle" style="margin-left:8px;">
+          Rated only
+          <input type="checkbox" id="ratedOnly" checked>
+        </label>
+
+        <button id="runH2H" style="padding:8px 12px; cursor:pointer;">Compare</button>
+      </div>
+
+      <datalist id="playersList"></datalist>
+    </div>
+
+    <div id="h2hSummary"></div>
+
+    <h3>Matches</h3>
+    <div id="h2hMatches"></div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="h2h.js"></script>
+</body>
+</html>
