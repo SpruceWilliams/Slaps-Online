@@ -220,6 +220,15 @@ fieldset, .form-group, form, main {
 
 .player-link { text-decoration: underline; cursor: pointer; }
 
-.toggle-row { margin: 12px 0 16px; }
-.toggle { cursor: pointer; user-select: none; }
 .toggle input { margin-right: 8px; }
+
+.toggle-row {
+  margin: 12px 0 16px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* space between text and checkbox */
+  cursor: pointer;
+}
