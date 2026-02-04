@@ -27,6 +27,152 @@ function fetchPlayers() {
   return fetch(url).then(r => r.json());
 }
 
+function computeOverallStats(matches, player, ratedOnly) {
+  const mine = matches
+    .filter(m => m.player1 === player || m.player2 === player)
+    .filter(m => ratedOnly ? isTrue(m.elo_applied) : true)
+    .slice()
+    .sort((a, b) => new Date(a.date) - new Date(b.date)); // chronological
+
+  const played = mine.length;
+  const wins = mine.filter(m => m.winner === player).length;
+  const losses = played - wins;
+
+  let gamesFor = 0, gamesAgainst = 0;
+  let slapsFor = 0, slapsAgainst = 0;
+  let yellow = 0, red = 0;
+
+  // Elo peak/low uses rated matches only (since friendlies don't move Elo)
+  const eloPoints = [];
+
+  let bestWin = null;   // {opp, oppElo, date}
+  let worstLoss = null; // {opp, oppElo, date}
+
+  let longest = null;
+  let longestGames = -1;
+
+  for (const m of mine) {
+    const isP1 = m.player1 === player;
+    const opp = isP1 ? m.player2 : m.player1;
+
+    const gFor = isP1 ? toNum(m.player1_games) : toNum(m.player2_games);
+    const gAg  = isP1 ? toNum(m.player2_games) : toNum(m.player1_games);
+
+    const sFor = isP1 ? toNum(m.player1_slaps) : toNum(m.player2_slaps);
+    const sAg  = isP1 ? toNum(m.player2_slaps) : toNum(m.player1_slaps);
+
+    const y = isP1 ? toNum(m.player1_yellow) : toNum(m.player2_yellow);
+    const r = isP1 ? toNum(m.player1_red) : toNum(m.player2_red);
+
+    gamesFor += gFor; gamesAgainst += gAg;
+    slapsFor += sFor; slapsAgainst += sAg;
+    yellow += y; red += r;
+
+    const totalG = toNum(m.player1_games) + toNum(m.player2_games);
+    if (totalG > longestGames) {
+      longestGames = totalG;
+      longest = m;
+    }
+
+    // Rated-only Elo features (even if overall mode includes friendlies)
+    if (isTrue(m.elo_applied)) {
+      const myEloBefore = isP1 ? toNum(m.p1_elo_before) : toNum(m.p2_elo_before);
+      const myEloAfter  = isP1 ? toNum(m.p1_elo_after)  : toNum(m.p2_elo_after);
+      const oppEloBefore = isP1 ? toNum(m.p2_elo_before) : toNum(m.p1_elo_before);
+
+      eloPoints.push(myEloBefore, myEloAfter);
+
+      if (m.winner === player) {
+        if (!bestWin || oppEloBefore > bestWin.oppElo) {
+          bestWin = { opp, oppElo: oppEloBefore, date: m.date };
+        }
+      } else {
+        if (!worstLoss || oppEloBefore < worstLoss.oppElo) {
+          worstLoss = { opp, oppElo: oppEloBefore, date: m.date };
+        }
+      }
+    }
+  }
+
+  const gamesTotal = gamesFor + gamesAgainst;
+  const slapsTotal = slapsFor + slapsAgainst;
+
+  const pctGamesWon = gamesTotal ? (gamesFor / gamesTotal) : 0;
+  const pctSlapsWon = slapsTotal ? (slapsFor / slapsTotal) : 0;
+
+  const avgGamesFor = played ? (gamesFor / played) : 0;
+  const avgGamesAgainst = played ? (gamesAgainst / played) : 0;
+  const avgSlapsFor = played ? (slapsFor / played) : 0;
+  const avgSlapsAgainst = played ? (slapsAgainst / played) : 0;
+
+  const eloPeak = eloPoints.length ? Math.max(...eloPoints) : null;
+  const eloLow  = eloPoints.length ? Math.min(...eloPoints) : null;
+
+  return {
+    played, wins, losses,
+    gamesFor, gamesAgainst, slapsFor, slapsAgainst,
+    pctGamesWon, pctSlapsWon,
+    avgGamesFor, avgGamesAgainst, avgSlapsFor, avgSlapsAgainst,
+    yellow, red,
+    longest, longestGames,
+    bestWin, worstLoss,
+    eloPeak, eloLow
+  };
+}
+
+function renderOverallComparison(a, b, ratedOnly, aStats, bStats) {
+  const el = document.getElementById("h2hSummary");
+  if (!el) return;
+
+  function fmtBW(x) {
+    return x ? `${x.opp} (Elo ${Math.round(x.oppElo)})` : "-";
+  }
+
+  el.innerHTML = `
+    <div class="card">
+      <p><strong>Overall comparison</strong> (${ratedOnly ? "rated only" : "rated + friendlies"})</p>
+      <table class="elo-table" style="margin-top:10px;">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>${a}</th>
+            <th>${b}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Matches (W–L)</td><td>${aStats.played} (${aStats.wins}–${aStats.losses})</td><td>${bStats.played} (${bStats.wins}–${bStats.losses})</td></tr>
+
+          <tr><td>Total games (for/against)</td><td>${aStats.gamesFor}/${aStats.gamesAgainst}</td><td>${bStats.gamesFor}/${bStats.gamesAgainst}</td></tr>
+          <tr><td>% games won</td><td>${(aStats.pctGamesWon*100).toFixed(1)}%</td><td>${(bStats.pctGamesWon*100).toFixed(1)}%</td></tr>
+          <tr><td>Avg games per match (for/against)</td><td>${aStats.avgGamesFor.toFixed(2)}/${aStats.avgGamesAgainst.toFixed(2)}</td><td>${bStats.avgGamesFor.toFixed(2)}/${bStats.avgGamesAgainst.toFixed(2)}</td></tr>
+
+          <tr><td>Total slaps (for/against)</td><td>${aStats.slapsFor}/${aStats.slapsAgainst}</td><td>${bStats.slapsFor}/${bStats.slapsAgainst}</td></tr>
+          <tr><td>% slaps won</td><td>${(aStats.pctSlapsWon*100).toFixed(1)}%</td><td>${(bStats.pctSlapsWon*100).toFixed(1)}%</td></tr>
+          <tr><td>Avg slaps per match (for/against)</td><td>${aStats.avgSlapsFor.toFixed(2)}/${aStats.avgSlapsAgainst.toFixed(2)}</td><td>${bStats.avgSlapsFor.toFixed(2)}/${bStats.avgSlapsAgainst.toFixed(2)}</td></tr>
+
+          <tr><td>Discipline (🟨/🟥)</td><td>${aStats.yellow}/${aStats.red}</td><td>${bStats.yellow}/${bStats.red}</td></tr>
+
+          <tr><td>Longest match (total games)</td>
+              <td>${aStats.longest ? aStats.longestGames : "-"}</td>
+              <td>${bStats.longest ? bStats.longestGames : "-"}</td></tr>
+
+          <tr><td>Best win (rated)</td><td>${fmtBW(aStats.bestWin)}</td><td>${fmtBW(bStats.bestWin)}</td></tr>
+          <tr><td>Worst loss (rated)</td><td>${fmtBW(aStats.worstLoss)}</td><td>${fmtBW(bStats.worstLoss)}</td></tr>
+
+          <tr><td>Peak / Low Elo (rated)</td>
+              <td>${aStats.eloPeak != null ? Math.round(aStats.eloPeak) : "-"} / ${aStats.eloLow != null ? Math.round(aStats.eloLow) : "-"}</td>
+              <td>${bStats.eloPeak != null ? Math.round(bStats.eloPeak) : "-"} / ${bStats.eloLow != null ? Math.round(bStats.eloLow) : "-"}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // In overall mode, we don't show the H2H match list by default:
+  document.getElementById("h2hMatches").innerHTML = `<p style="opacity:.8;">Select “Head-to-head” mode to see the match list between them.</p>`;
+}
+
+
+
 function headToHeadMatches(matches, a, b, ratedOnly) {
   return matches
     .filter(m => {
@@ -242,26 +388,38 @@ function showLoading(show) {
   populateSelect(selA);
   populateSelect(selB);
 
-  function run() {
+    function run() {
     const a = selA.value;
     const b = selB.value;
 
     if (!a || !b || a === b) {
-      document.getElementById("h2hSummary").innerHTML = "";
-      document.getElementById("h2hMatches").innerHTML = "";
-      return;
+        document.getElementById("h2hSummary").innerHTML = "";
+        document.getElementById("h2hMatches").innerHTML = "";
+        return;
     }
 
-    const h2h = headToHeadMatches(matches, a, b, !!ratedOnly.checked);
-    const stats = computeH2HStats(h2h, a, b);
+    const rated = !!ratedOnly.checked;
+    const mode = document.getElementById("compareMode").value;
 
-    renderSummary(a, b, !!ratedOnly.checked, stats);
+    if (mode === "overall") {
+        const aStats = computeOverallStats(matches, a, rated);
+        const bStats = computeOverallStats(matches, b, rated);
+        renderOverallComparison(a, b, rated, aStats, bStats);
+        return;
+    }
+
+    // default: head-to-head
+    const h2h = headToHeadMatches(matches, a, b, rated);
+    const stats = computeH2HStats(h2h, a, b);
+    renderSummary(a, b, rated, stats);
     renderMatchesTable(h2h, a);
-  }
+    }
+
 
   // Auto-run when selection changes
   selA.addEventListener("change", run);
   selB.addEventListener("change", run);
+  document.getElementById("compareMode").addEventListener("change", run);
   ratedOnly.addEventListener("change", run);
 
   // Swap button
