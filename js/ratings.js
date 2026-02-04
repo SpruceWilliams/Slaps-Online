@@ -39,7 +39,9 @@ function renderRatings(containerId, ratings) {
               <td>${i + 1}</td>
                 <td>
                   <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
-                  <span class="player-name">${r.player_name}</span>
+                  <a class="player-link" href="player.html?player=${encodeURIComponent(r.player_name)}">
+                  ${r.player_name}
+                </a>
                 </td>
               <td>${Math.round(r.elo)}</td>
               <td>${r.games_played}</td>
