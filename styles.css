@@ -210,3 +210,5 @@ fieldset, .form-group, form, main {
   overflow: visible !important;
 }
 
+.flag { margin-right: 8px; }
+.form5 { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; letter-spacing: 1px; }
