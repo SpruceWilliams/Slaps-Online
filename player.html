@@ -6,16 +6,32 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="page">
-    <p><a href="index.html">← Back to ratings</a></p>
+<main class="page">
+  <p><a href="index.html">← Back to ratings</a></p>
 
-    <h1 id="playerTitle">Player</h1>
+  <h1 id="playerTitle">Player</h1>
 
-    <div id="playerSummary"></div>
+  <!-- Toggle -->
+  <div class="toggle-row">
+    <label class="toggle">
+      <input type="checkbox" id="includeFriendlies" />
+      Include friendlies (non-rated)
+    </label>
+  </div>
 
-    <h3>Recent Matches</h3>
-    <div id="playerMatches"></div>
-  </main>
+  <!-- Stats summary -->
+  <div id="playerSummary"></div>
+
+  <h3>Elo progression (rated)</h3>
+    <canvas id="eloChart" width="900" height="260" style="max-width:100%; border:1px solid #ddd; border-radius:8px;"></canvas>
+
+    <div id="playerExtras"></div>
+
+
+  <h3>Matches</h3>
+  <div id="playerMatches"></div>
+</main>
+
 
   <script src="js/config.js"></script> <!-- wherever API.BASE lives -->
   <script src="js/player.js"></script>
