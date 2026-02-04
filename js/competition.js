@@ -41,24 +41,32 @@ function expectedScore(Rp, Ropp) {
 
 // Solve Rp s.t. sum expected = observed
 function performanceRating(opponentRatings, observedScores) {
-  if (!opponentRatings.length) return null;
+  // Use only valid opponent ratings (>0)
+  const pairs = opponentRatings
+    .map((r, i) => ({ r: Number(r), s: Number(observedScores[i]) }))
+    .filter(x => Number.isFinite(x.r) && x.r > 0 && Number.isFinite(x.s));
 
-  const S = observedScores.reduce((a, b) => a + b, 0);
-  const n = opponentRatings.length;
+  if (!pairs.length) return null;
 
-  // bounds wide enough for almost all cases
-  let lo = Math.min(...opponentRatings) - 800;
-  let hi = Math.max(...opponentRatings) + 800;
+  const Rs = pairs.map(x => x.r);
+  const Ss = pairs.map(x => x.s);
 
-  for (let iter = 0; iter < 40; iter++) {
-    const mid = (lo + hi) / 2;
-    let E = 0;
-    for (let i = 0; i < n; i++) E += expectedScore(mid, opponentRatings[i]);
+  const n = Ss.length;
+  const S = Ss.reduce((a, b) => a + b, 0);
+  const Ravg = Rs.reduce((a, b) => a + b, 0) / n;
 
-    if (E < S) lo = mid; else hi = mid;
-  }
-  return (lo + hi) / 2;
+  // Laplace smoothing to avoid p=0 or p=1 infinities (important for small n)
+  const p = (S + 0.5) / (n + 1); // always in (0,1)
+
+  // Elo logistic inverse: D = -400*log10(1/p - 1)
+  const D = -400 * Math.log10(1 / p - 1);
+
+  // Optional: clamp to avoid silly extremes in tiny samples
+  const perf = Ravg + D;
+  const clamp = 800; // you can use 600 if you want it tighter
+  return Math.max(Ravg - clamp, Math.min(Ravg + clamp, perf));
 }
+
 
 function buildFlagMap(ratings) {
   const map = {};
