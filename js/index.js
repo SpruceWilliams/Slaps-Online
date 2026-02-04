@@ -56,5 +56,5 @@ function renderCompetitions(containerId, comps) {
 }
 
 // call on page load
-fetchCompetitions(10).then(comps => renderCompetitions("recentCompetitions", comps));
+fetchCompetitions(20).then(comps => renderCompetitions("recentCompetitions", comps));
 

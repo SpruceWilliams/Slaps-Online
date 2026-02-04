@@ -237,7 +237,7 @@ function renderStandings(standings, flagMap) {
             <th>Matches</th>
             <th>Games F/A</th>
             <th>Slaps F/A</th>
-            <th>Perf</th>
+            <th>Tournament Rating</th>
             <th>🟨</th>
             <th>🟥</th>
           </tr>
@@ -321,7 +321,7 @@ function renderPlayerCards(standings, flagMap) {
       <div class="card" style="margin: 12px 0;">
         <p>
           <strong>${s.player}</strong> — ${s.wins}–${s.losses}
-          &nbsp; | &nbsp; Perf: ${s.perf != null ? Math.round(s.perf) : "-"}
+          &nbsp; | &nbsp; Performance Rating: ${s.perf != null ? Math.round(s.perf) : "-"}
         </p>
         <div class="elo-table-wrapper">
           <table class="elo-table">
