@@ -57,6 +57,20 @@ function getPlayerDiscipline(m, player) {
   return { yellow: y, red: r };
 }
 
+function formatDate(value) {
+  if (!value) return "";
+
+  const d = new Date(value);
+  if (isNaN(d)) return value; // fallback if parsing fails
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+
 function renderEloChart(player, ratedMineChrono) {
   const canvas = document.getElementById("eloChart");
   if (!canvas) return;
@@ -275,9 +289,9 @@ function render(player, stats, currentElo, includeFriendlies) {
 
       <hr>
 
-      <p><strong>Total games (for / against):</strong> ${stats.gamesFor} / ${stats.gamesAgainst}</p>
-      <p><strong>% games won:</strong> ${(stats.pctGamesWon * 100).toFixed(1)}%</p>
-      <p><strong>Avg games per match (for / against):</strong> ${stats.avgGamesFor.toFixed(2)} / ${stats.avgGamesAgainst.toFixed(2)}</p>
+      <p><strong>Total rounds (for / against):</strong> ${stats.gamesFor} / ${stats.gamesAgainst}</p>
+      <p><strong>% rounds won:</strong> ${(stats.pctGamesWon * 100).toFixed(1)}%</p>
+      <p><strong>Avg rounds per match (for / against):</strong> ${stats.avgGamesFor.toFixed(2)} / ${stats.avgGamesAgainst.toFixed(2)}</p>
 
       <hr>
 
@@ -307,7 +321,7 @@ function render(player, stats, currentElo, includeFriendlies) {
     return `
       <tr>
         <td>${res}</td>
-        <td>${m.date || ""}</td>
+        <td>${formatDate(m.date)}</td>
         <td>${m.player1}</td>
         <td>${toNum(m.player1_games)}</td>
         <td>${toNum(m.player2_games)}</td>
@@ -327,8 +341,8 @@ function render(player, stats, currentElo, includeFriendlies) {
             <th>R</th>
             <th>Date</th>
             <th>Player 1</th>
-            <th>G1</th>
-            <th>G2</th>
+            <th>R1</th>
+            <th>R2</th>
             <th>Player 2</th>
             <th>S1</th>
             <th>S2</th>
