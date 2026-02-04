@@ -217,3 +217,5 @@ input:invalid {
 fieldset, .form-group, form, main {
   overflow: visible !important;
 }
+
+.player-link { text-decoration: underline; cursor: pointer; }
