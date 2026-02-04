@@ -443,28 +443,44 @@ function render(player, stats, currentElo, includeFriendlies) {
 
 (async function init() {
   const player = getPlayerFromURL();
+  const loading = document.getElementById("loadingIndicator");
+
   if (!player) {
     document.getElementById("playerTitle").textContent = "Player not found";
+    if (loading) loading.style.display = "none";
     return;
   }
 
-  const [matches, ratings] = await Promise.all([fetchMatches(), fetchRatings()]);
+  try {
+    const [matches, ratings] = await Promise.all([
+      fetchMatches(),
+      fetchRatings()
+    ]);
 
-  // Current Elo from ratings sheet
-  const ratingRow = Array.isArray(ratings) ? ratings.find(r => r.player_name === player) : null;
-  const currentElo = ratingRow ? Number(ratingRow.elo) : null;
+    const ratingRow = Array.isArray(ratings)
+      ? ratings.find(r => r.player_name === player)
+      : null;
 
-  const toggle = document.getElementById("includeFriendlies");
+    const currentElo = ratingRow ? Number(ratingRow.elo) : null;
 
-  function rerender() {
-    const includeFriendlies = !!toggle.checked;
-    const stats = computeStats(player, matches, includeFriendlies);
-    render(player, stats, currentElo, includeFriendlies);
+    const toggle = document.getElementById("includeFriendlies");
+
+    function rerender() {
+      const includeFriendlies = !!toggle.checked;
+      const stats = computeStats(player, matches, includeFriendlies);
+      render(player, stats, currentElo, includeFriendlies);
+    }
+
+    toggle.checked = false;
+    toggle.addEventListener("change", rerender);
+
+    rerender();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("playerSummary").innerHTML =
+      `<p style="color:red;">Failed to load player data.</p>`;
+  } finally {
+    if (loading) loading.style.display = "none";
   }
-
-  // Default: rated only
-  toggle.checked = false;
-  toggle.addEventListener("change", rerender);
-
-  rerender();
 })();
+
