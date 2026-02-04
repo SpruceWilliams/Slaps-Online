@@ -1,3 +1,4 @@
+console.log("ratings.js LOADED — version 2026-02-04-emoji-test");
 console.log("ratings.js loaded");
 console.log("API in ratings.js:", window.API);
 
