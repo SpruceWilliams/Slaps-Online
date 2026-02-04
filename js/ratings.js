@@ -40,8 +40,8 @@ function renderRatings(containerId, ratings) {
                 <td>
                   <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
                   <a class="player-link" href="player.html?player=${encodeURIComponent(r.player_name)}">
-                  ${r.player_name}
-                </a>
+                    ${r.player_name}
+                  </a>
                 </td>
               <td>${Math.round(r.elo)}</td>
               <td>${r.games_played}</td>

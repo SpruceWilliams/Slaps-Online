@@ -1,3 +1,5 @@
+// player.js (schema matches your sheet headers exactly)
+
 function getPlayerFromURL() {
   const url = new URL(window.location.href);
   return (url.searchParams.get("player") || "").trim();
@@ -9,88 +11,345 @@ function fetchMatches() {
   return fetch(url).then(r => r.json());
 }
 
+function fetchRatings() {
+  const url = new URL(API.BASE);
+  url.search = new URLSearchParams({ action: "ratings" });
+  return fetch(url).then(r => r.json());
+}
+
 function isTrue(v) {
   return v === true || String(v).toLowerCase() === "true";
 }
 
-function computePlayerStats(player, matches) {
-  // rated only
-  const rated = matches.filter(m => isTrue(m.elo_applied));
+function toNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
-  // matches involving this player
-  const mine = rated.filter(m => m.player1 === player || m.player2 === player);
+function parseDateSafe(s) {
+  // Accepts ISO-ish strings; falls back to 0 if missing/unparseable
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function opponentOfMatch(m, player) {
+  return m.player1 === player ? m.player2 : m.player1;
+}
+
+function playerIsP1(m, player) {
+  return m.player1 === player;
+}
+
+function getPlayerEloBefore(m, player) {
+  return playerIsP1(m, player) ? toNum(m.p1_elo_before) : toNum(m.p2_elo_before);
+}
+function getPlayerEloAfter(m, player) {
+  return playerIsP1(m, player) ? toNum(m.p1_elo_after) : toNum(m.p2_elo_after);
+}
+function getOppEloBefore(m, player) {
+  // opponent is the other side
+  return playerIsP1(m, player) ? toNum(m.p2_elo_before) : toNum(m.p1_elo_before);
+}
+
+function getPlayerDiscipline(m, player) {
+  const y = playerIsP1(m, player) ? toNum(m.player1_yellow) : toNum(m.player2_yellow);
+  const r = playerIsP1(m, player) ? toNum(m.player1_red) : toNum(m.player2_red);
+  return { yellow: y, red: r };
+}
+
+function renderEloChart(player, ratedMineChrono) {
+  const canvas = document.getElementById("eloChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (!ratedMineChrono.length) {
+    ctx.font = "14px sans-serif";
+    ctx.fillText("No rated matches to plot.", 12, 24);
+    return;
+  }
+
+  // Build Elo points: start with first "before", then each match "after"
+  const points = [];
+  points.push(getPlayerEloBefore(ratedMineChrono[0], player));
+  for (const m of ratedMineChrono) points.push(getPlayerEloAfter(m, player));
+
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+
+  // padding + avoid flatline division by zero
+  const pad = 30;
+  const span = (max - min) || 1;
+
+  const xStep = (w - pad * 2) / (points.length - 1);
+  const yMap = (v) => (h - pad) - ((v - min) / span) * (h - pad * 2);
+
+  // axes
+  ctx.strokeStyle = "#ccc";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad);
+  ctx.lineTo(pad, h - pad);
+  ctx.lineTo(w - pad, h - pad);
+  ctx.stroke();
+
+  // line
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  points.forEach((v, i) => {
+    const x = pad + i * xStep;
+    const y = yMap(v);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // points
+  ctx.fillStyle = "#111";
+  points.forEach((v, i) => {
+    const x = pad + i * xStep;
+    const y = yMap(v);
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // labels
+  ctx.fillStyle = "#111";
+  ctx.font = "12px sans-serif";
+  ctx.fillText(`Min: ${Math.round(min)}`, pad, pad - 10);
+  ctx.fillText(`Max: ${Math.round(max)}`, w - pad - 80, pad - 10);
+
+  ctx.fillText(`${Math.round(points[0])}`, pad, yMap(points[0]) - 6);
+  ctx.fillText(`${Math.round(points[points.length - 1])}`, w - pad - 40, yMap(points[points.length - 1]) - 6);
+}
+
+
+
+function computeStats(player, matches, includeFriendlies) {
+  // Filter to this player's matches, optionally rated-only
+  const mine = matches
+    .filter(m => m.player1 === player || m.player2 === player)
+    .filter(m => includeFriendlies ? true : isTrue(m.elo_applied));
 
   const played = mine.length;
   const wins = mine.filter(m => m.winner === player).length;
   const losses = played - wins;
-  const winRate = played ? (wins / played) : 0;
 
-  // Last 10 (most recent first) – assumes matches are returned oldest->newest OR include date.
-  // If you have a date column, sort by it here.
-  const recent = [...mine].reverse().slice(0, 10);
+  let gamesFor = 0, gamesAgainst = 0;
+  let slapsFor = 0, slapsAgainst = 0;
+let yellowTotal = 0, redTotal = 0;
 
-  // streak from most recent backwards
-  let streakType = null;
-  let streakCount = 0;
-  for (const m of recent) {
-    const res = (m.winner === player) ? "W" : "L";
-    if (streakType == null) {
-      streakType = res;
-      streakCount = 1;
-    } else if (res === streakType) {
-      streakCount++;
-    } else {
-      break;
+  let bestWin = null;   // { opponent, oppElo, match }
+  let worstLoss = null; // { opponent, oppElo, match }
+
+  const eloPoints = [];
+
+  for (const m of mine) {
+    const isP1 = m.player1 === player;
+
+    const gFor = isP1 ? toNum(m.player1_games) : toNum(m.player2_games);
+    const gAgainst = isP1 ? toNum(m.player2_games) : toNum(m.player1_games);
+
+    const sFor = isP1 ? toNum(m.player1_slaps) : toNum(m.player2_slaps);
+    const sAgainst = isP1 ? toNum(m.player2_slaps) : toNum(m.player1_slaps);
+
+    gamesFor += gFor;
+    gamesAgainst += gAgainst;
+    slapsFor += sFor;
+    slapsAgainst += sAgainst;
+
+    // Discipline totals (works for rated + friendlies)
+    const d = getPlayerDiscipline(m, player);
+    yellowTotal += d.yellow;
+    redTotal += d.red;
+
+    // Best win / worst loss should use rated Elo context only
+    if (isTrue(m.elo_applied)) {
+      const opp = opponentOfMatch(m, player);
+      const oppElo = getOppEloBefore(m, player);
+
+      if (m.winner === player) {
+        if (!bestWin || oppElo > bestWin.oppElo) bestWin = { opponent: opp, oppElo, match: m };
+      } else {
+        // player lost
+        if (!worstLoss || oppElo < worstLoss.oppElo) worstLoss = { opponent: opp, oppElo, match: m };
+      }
+    }
+
+
+    // Elo only makes sense for rated matches (elo_applied=true)
+    if (isTrue(m.elo_applied)) {
+      if (isP1) {
+        eloPoints.push(toNum(m.p1_elo_before));
+        eloPoints.push(toNum(m.p1_elo_after));
+      } else {
+        eloPoints.push(toNum(m.p2_elo_before));
+        eloPoints.push(toNum(m.p2_elo_after));
+      }
     }
   }
 
-  // most common opponent
-  const oppCounts = {};
+  const gamesTotal = gamesFor + gamesAgainst;
+  const slapsTotal = slapsFor + slapsAgainst;
+
+  const pctGamesWon = gamesTotal ? (gamesFor / gamesTotal) : 0;
+  const pctSlapsWon = slapsTotal ? (slapsFor / slapsTotal) : 0;
+
+  const avgGamesFor = played ? (gamesFor / played) : 0;
+  const avgGamesAgainst = played ? (gamesAgainst / played) : 0;
+  const avgSlapsFor = played ? (slapsFor / played) : 0;
+  const avgSlapsAgainst = played ? (slapsAgainst / played) : 0;
+
+  // Longest match by total games (player1_games + player2_games)
+  let longestMatch = null;
+  let longestGames = -1;
   for (const m of mine) {
-    const opp = (m.player1 === player) ? m.player2 : m.player1;
-    oppCounts[opp] = (oppCounts[opp] || 0) + 1;
+    const total = toNum(m.player1_games) + toNum(m.player2_games);
+    if (total > longestGames) {
+      longestGames = total;
+      longestMatch = m;
+    }
   }
-  const topOpp = Object.entries(oppCounts).sort((a,b) => b[1]-a[1])[0] || null;
+
+  const eloPeak = eloPoints.length ? Math.max(...eloPoints) : null;
+  const eloLow = eloPoints.length ? Math.min(...eloPoints) : null;
 
   return {
-    played, wins, losses, winRate,
-    streak: streakType ? `${streakCount}${streakType}` : "-",
-    topOpp: topOpp ? `${topOpp[0]} (${topOpp[1]})` : "-",
-    recent
+    mine,
+    played, wins, losses,
+    gamesFor, gamesAgainst,
+    slapsFor, slapsAgainst,
+    pctGamesWon, pctSlapsWon,
+    avgGamesFor, avgGamesAgainst,
+    avgSlapsFor, avgSlapsAgainst,
+    longestMatch, longestGames,
+    yellowTotal,
+    redTotal,
+    bestWin,
+    worstLoss,
+    eloPeak, eloLow
   };
 }
 
-function renderPlayer(player, stats) {
+function render(player, stats, currentElo, includeFriendlies) {
   document.getElementById("playerTitle").textContent = player;
 
-  document.getElementById("playerSummary").innerHTML = `
+  const summary = document.getElementById("playerSummary");
+
+  // Extras block: best win / worst loss / discipline
+  const extras = document.getElementById("playerExtras");
+  if (extras) {
+    const bw = stats.bestWin
+      ? `${stats.bestWin.opponent} (opp Elo ${Math.round(stats.bestWin.oppElo)})`
+      : "-";
+    const wl = stats.worstLoss
+      ? `${stats.worstLoss.opponent} (opp Elo ${Math.round(stats.worstLoss.oppElo)})`
+      : "-";
+
+    extras.innerHTML = `
+      <div class="card">
+        <p><strong>Best win (highest-Elo opponent beaten, rated):</strong> ${bw}</p>
+        <p><strong>Worst loss (lowest-Elo opponent lost to, rated):</strong> ${wl}</p>
+        <hr>
+        <p><strong>Discipline totals:</strong> 🟨 ${stats.yellowTotal} &nbsp;&nbsp; 🟥 ${stats.redTotal}</p>
+      </div>
+    `;
+  }
+
+
+  const longestText = stats.longestMatch
+    ? `${stats.longestMatch.player1} ${toNum(stats.longestMatch.player1_games)}–${toNum(stats.longestMatch.player2_games)} ${stats.longestMatch.player2} (${stats.longestGames} games)`
+    : "-";
+
+  summary.innerHTML = `
     <div class="card">
-      <p><strong>Rated games:</strong> ${stats.played}</p>
+      <p><strong>Mode:</strong> ${includeFriendlies ? "Rated + friendlies" : "Rated only"}</p>
+      <p><strong>Current Elo:</strong> ${currentElo != null ? Math.round(currentElo) : "-"}</p>
+
+      <p><strong>Matches:</strong> ${stats.played}</p>
       <p><strong>Wins–Losses:</strong> ${stats.wins}–${stats.losses}</p>
-      <p><strong>Win rate:</strong> ${(stats.winRate * 100).toFixed(1)}%</p>
-      <p><strong>Current streak:</strong> ${stats.streak}</p>
-      <p><strong>Most played opponent:</strong> ${stats.topOpp}</p>
+
+      <hr>
+
+      <p><strong>Total games (for / against):</strong> ${stats.gamesFor} / ${stats.gamesAgainst}</p>
+      <p><strong>% games won:</strong> ${(stats.pctGamesWon * 100).toFixed(1)}%</p>
+      <p><strong>Avg games per match (for / against):</strong> ${stats.avgGamesFor.toFixed(2)} / ${stats.avgGamesAgainst.toFixed(2)}</p>
+
+      <hr>
+
+      <p><strong>Total slaps (for / against):</strong> ${stats.slapsFor} / ${stats.slapsAgainst}</p>
+      <p><strong>% slaps won:</strong> ${(stats.pctSlapsWon * 100).toFixed(1)}%</p>
+      <p><strong>Avg slaps per match (for / against):</strong> ${stats.avgSlapsFor.toFixed(2)} / ${stats.avgSlapsAgainst.toFixed(2)}</p>
+
+      <hr>
+
+      <p><strong>Longest match (total games):</strong> ${longestText}</p>
+
+      <p><strong>Peak Elo (rated):</strong> ${stats.eloPeak != null ? Math.round(stats.eloPeak) : "-"}</p>
+      <p><strong>Lowest Elo (rated):</strong> ${stats.eloLow != null ? Math.round(stats.eloLow) : "-"}</p>
+      ${includeFriendlies ? `<p style="opacity:.75"><em>Note: Elo peak/low use rated matches only.</em></p>` : ``}
     </div>
   `;
 
-  const rows = stats.recent.map(m => {
-    const opp = (m.player1 === player) ? m.player2 : m.player1;
+  // All matches table (show rated flag, games/slaps)
+  const matchesDiv = document.getElementById("playerMatches");
+
+  // If your API returns matches oldest->newest, reverse for "most recent first"
+  const mineMostRecentFirst = stats.mine.slice().reverse();
+
+  const rows = mineMostRecentFirst.map(m => {
     const res = (m.winner === player) ? "W" : "L";
-    return `<tr>
-      <td>${res}</td>
-      <td>${opp}</td>
-      <td>${m.player1} vs ${m.player2}</td>
-    </tr>`;
+    const ratedMark = isTrue(m.elo_applied) ? "✓" : "";
+    return `
+      <tr>
+        <td>${res}</td>
+        <td>${m.date || ""}</td>
+        <td>${m.player1}</td>
+        <td>${toNum(m.player1_games)}</td>
+        <td>${toNum(m.player2_games)}</td>
+        <td>${m.player2}</td>
+        <td>${toNum(m.player1_slaps)}</td>
+        <td>${toNum(m.player2_slaps)}</td>
+        <td>${ratedMark}</td>
+      </tr>
+    `;
   }).join("");
 
-  document.getElementById("playerMatches").innerHTML = `
+  matchesDiv.innerHTML = `
     <div class="elo-table-wrapper">
       <table class="elo-table">
-        <thead><tr><th>Result</th><th>Opponent</th><th>Match</th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="3">No rated matches found.</td></tr>`}</tbody>
+        <thead>
+          <tr>
+            <th>R</th>
+            <th>Date</th>
+            <th>Player 1</th>
+            <th>G1</th>
+            <th>G2</th>
+            <th>Player 2</th>
+            <th>S1</th>
+            <th>S2</th>
+            <th>Rated</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="9">No matches found.</td></tr>`}
+        </tbody>
       </table>
     </div>
   `;
+
+    // Elo chart always uses rated matches only
+  const ratedMineChrono = stats.mine
+    .filter(m => isTrue(m.elo_applied))
+    .slice()
+    .sort((a, b) => parseDateSafe(a.date) - parseDateSafe(b.date));
+
+  renderEloChart(player, ratedMineChrono);
+
 }
 
 (async function init() {
@@ -100,7 +359,23 @@ function renderPlayer(player, stats) {
     return;
   }
 
-  const matches = await fetchMatches();
-  const stats = computePlayerStats(player, matches);
-  renderPlayer(player, stats);
+  const [matches, ratings] = await Promise.all([fetchMatches(), fetchRatings()]);
+
+  // Current Elo from ratings sheet
+  const ratingRow = Array.isArray(ratings) ? ratings.find(r => r.player_name === player) : null;
+  const currentElo = ratingRow ? Number(ratingRow.elo) : null;
+
+  const toggle = document.getElementById("includeFriendlies");
+
+  function rerender() {
+    const includeFriendlies = !!toggle.checked;
+    const stats = computeStats(player, matches, includeFriendlies);
+    render(player, stats, currentElo, includeFriendlies);
+  }
+
+  // Default: rated only
+  toggle.checked = false;
+  toggle.addEventListener("change", rerender);
+
+  rerender();
 })();
