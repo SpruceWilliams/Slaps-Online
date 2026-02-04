@@ -1,22 +1,19 @@
 console.log("ratings.js loaded");
 console.log("API in ratings.js:", window.API);
 
+function countryCodeToFlag(code) {
+  const c = String(code || "GB").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(c)) return "🇬🇧";
+  return c.replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+}
+
+
 function fetchRatings(limit) {
   const url = new URL(API.BASE);
   const params = new URLSearchParams({ action: "ratings" });
   if (limit != null) params.set("limit", limit);
   url.search = params;
   return fetch(url).then(r => r.json());
-}
-
-function countryCodeToFlag(code) {
-  if (!code || code.length !== 2) return "🇬🇧"; // default UK
-
-  return code
-    .toUpperCase()
-    .replace(/./g, char =>
-      String.fromCodePoint(127397 + char.charCodeAt())
-    );
 }
 
 
