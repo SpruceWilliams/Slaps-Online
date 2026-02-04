@@ -141,6 +141,14 @@ input:invalid {
   }
 }
 
+.elo-table img.emoji {
+  height: 1em;
+  width: 1em;
+  vertical-align: -0.15em;
+  margin-right: 8px;
+}
+
+
 /* Match Table Styles */
 
 .match-table-wrapper {
@@ -208,9 +216,4 @@ input:invalid {
 
 fieldset, .form-group, form, main {
   overflow: visible !important;
-}
-
-.flag { margin-right: 8px;
-  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif !important;
-  margin-right: 8px;
 }
