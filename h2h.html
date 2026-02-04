@@ -20,11 +20,11 @@
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
         <div>
           <label>Player A</label><br>
-          <input id="pA" list="playersList" placeholder="Type a name…" style="min-width:220px;">
+          <select id="pA" style="min-width:220px;"></select>
         </div>
         <div>
           <label>Player B</label><br>
-          <input id="pB" list="playersList" placeholder="Type a name…" style="min-width:220px;">
+          <select id="pB" style="min-width:220px;"></select>
         </div>
 
         <label class="toggle" style="margin-left:8px;">
@@ -35,7 +35,7 @@
         <button id="runH2H" style="padding:8px 12px; cursor:pointer;">Compare</button>
       </div>
 
-      <datalist id="playersList"></datalist>
+      <button id="swapPlayers" style="padding:6px 10px; cursor:pointer;">Swap</button>
     </div>
 
     <div id="h2hSummary"></div>
