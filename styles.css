@@ -212,3 +212,8 @@ fieldset, .form-group, form, main {
 
 .flag { margin-right: 8px; }
 .form5 { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; letter-spacing: 1px; }
+
+.flag {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif !important;
+  margin-right: 8px;
+}
