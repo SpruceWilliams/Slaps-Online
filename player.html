@@ -11,13 +11,19 @@
 
   <h1 id="playerTitle">Player</h1>
 
-  <!-- Toggle -->
-  <div class="toggle-row">
-    <label class="toggle">
-      <input type="checkbox" id="includeFriendlies" />
-      Include friendlies (non-rated)
-    </label>
+  <div id="loadingIndicator" class="loading">
+    <div class="spinner"></div>
+    <span>Loading player statistics...</span>
   </div>
+
+
+  <!-- Toggle -->
+    <div class="toggle-row">
+    <label class="toggle">
+        Include friendlies (non-rated)
+        <input type="checkbox" id="includeFriendlies" />
+    </label>
+    </div>
 
   <!-- Stats summary -->
   <div id="playerSummary"></div>
