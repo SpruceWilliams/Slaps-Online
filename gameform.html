@@ -110,36 +110,64 @@
                 <button type="submit" id="submitBtn">Submit Match</button>
             </form>
 
-            <script>
-            // Ensure config.js has loaded
-            const form = document.getElementById("matchform");
-            form.action = window.API.BASE;
-            </script>
-
+            <datalist id="playersList"></datalist>
 
             <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    // --- Guard: config.js must be loaded ---
+                    if (!window.API || !window.API.BASE) {
+                    alert("API config not loaded (js/config.js). Check script path.");
+                    return;
+                    }
 
-                // Winner option code...
-                const p1Input = document.getElementById("player1fullname");
-                const p2Input = document.getElementById("player2fullname");
-                const winnerSelect = document.querySelector("select[name='winnername']");
-                function updateWinnerOptions() {
+                    // --- Elements ---
+                    const formEl = document.getElementById("matchform");
+                    const btn = document.getElementById("submitBtn");
+                    const requestIdInput = document.getElementById("request_id");
+
+                    const p1Input = document.getElementById("player1fullname");
+                    const p2Input = document.getElementById("player2fullname");
+                    const winnerSelect = document.querySelector("select[name='winnername']");
+                    const datalistEl = document.getElementById("playersList");
+
+                    // --- Set form action from config.js ---
+                    formEl.action = window.API.BASE;
+
+                    // --- Winner dropdown updates ---
+                    function updateWinnerOptions() {
                     winnerSelect.innerHTML = `
-                    <option value="">Select winner</option>
-                    <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
-                    <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
+                        <option value="">Select winner</option>
+                        <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
+                        <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
                     `;
-                }
-                p1Input.addEventListener("input", updateWinnerOptions);
-                p2Input.addEventListener("input", updateWinnerOptions);
+                    }
+                    p1Input.addEventListener("input", updateWinnerOptions);
+                    p2Input.addEventListener("input", updateWinnerOptions);
+                    p1Input.addEventListener("change", updateWinnerOptions);
+                    p2Input.addEventListener("change", updateWinnerOptions);
 
-                // --- NEW: one-shot submit + redirect ---
-                const form = document.getElementById("matchform");
-                const btn = document.getElementById("submitBtn");
-                const requestIdInput = document.getElementById("request_id");
-                let submitting = false;
+                    // --- JSONP callback for players list ---
+                    window.handlePlayersList = function(names) {
+                    datalistEl.innerHTML = "";
+                    (names || []).forEach(name => {
+                        const opt = document.createElement("option");
+                        opt.value = name;
+                        datalistEl.appendChild(opt);
+                    });
+                    };
 
-                form.addEventListener("submit", async (e) => {
+                    // --- Load players via JSONP ---
+                    const playersScript = document.createElement("script");
+                    playersScript.src = `${window.API.BASE}?action=players&callback=handlePlayersList`;
+                    playersScript.onerror = () => {
+                    console.error("Failed to load players list JSONP.");
+                    };
+                    document.head.appendChild(playersScript);
+
+                    // --- One-shot submit + redirect ---
+                    let submitting = false;
+
+                    formEl.addEventListener("submit", async (e) => {
                     e.preventDefault();
                     if (submitting) return;
 
@@ -148,69 +176,40 @@
                     const oldText = btn.textContent;
                     btn.textContent = "Submitting...";
 
-                    // Idempotency token for this submission
+                    // Set idempotency token
                     requestIdInput.value =
-                    (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+                        (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
                     try {
-                    const resp = await fetch(form.action, {
+                        const resp = await fetch(formEl.action, {
                         method: "POST",
-                        body: new FormData(form),
-                    });
+                        body: new FormData(formEl),
+                        });
 
-                    const result = await resp.json();
+                        // Helpful debugging if Apps Script returns HTML instead of JSON
+                        const text = await resp.text();
+                        let result;
+                        try {
+                        result = JSON.parse(text);
+                        } catch {
+                        throw new Error("Server did not return JSON. Response was: " + text.slice(0, 120));
+                        }
 
-                    if (!result.success) {
-                        throw new Error(result.error || "Unknown error");
-                    }
+                        if (!result.success) throw new Error(result.error || "Unknown error");
 
-                    // Redirect on GitHub Pages (repo pages): /Slaps-Online/...
-                    const base = location.pathname.includes("/Slaps-Online/") ? "/Slaps-Online" : "";
-                    window.location.href = `${base}/submitted.html?matchId=${encodeURIComponent(result.matchId)}`;
+                        const base = location.pathname.includes("/Slaps-Online/") ? "/Slaps-Online" : "";
+                        window.location.href = `${base}/submitted.html?matchId=${encodeURIComponent(result.matchId)}`;
 
                     } catch (err) {
-                    alert("Submission failed: " + err.message);
-
-                    // allow retry
-                    submitting = false;
-                    btn.disabled = false;
-                    btn.textContent = oldText;
+                        alert("Submission failed: " + err.message);
+                        submitting = false;
+                        btn.disabled = false;
+                        btn.textContent = oldText;
                     }
+                    });
                 });
             </script>
-        </main>
 
-    <datalist id="playersList"></datalist>
-
-    <script>
-        // Wait until DOM exists
-        document.addEventListener("DOMContentLoaded", () => {
-            // 1) Set form action from config.js
-            const form = document.getElementById("matchform");
-            form.action = window.API.BASE;
-
-            // 2) Enable datalist suggestions on both inputs
-            const p1 = document.getElementById("player1fullname");
-            const p2 = document.getElementById("player2fullname");
-            p1.setAttribute("list", "playersList");
-            p2.setAttribute("list", "playersList");
-
-            // 3) JSONP callback for Apps Script
-            window.handlePlayersList = function(names) {
-            const dl = document.getElementById("playersList");
-            dl.innerHTML = "";
-            names.forEach(name => {
-                const opt = document.createElement("option");
-                opt.value = name;
-                dl.appendChild(opt);
-            });
-            };
-
-            // 4) Load players via JSONP using config BASE
-            const script = document.createElement("script");
-            script.src = `${window.API.BASE}?action=players&callback=handlePlayersList`;
-            document.head.appendChild(script);
-        });
     </script>
 
     </body>
