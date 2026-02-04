@@ -124,6 +124,7 @@ function computeStandings(compMatches) {
         slapsAgainst: 0,
         yellow: 0,
         red: 0,
+        eloDelta: 0,
         oppRatings: [],
         scores: [],
         results: [] // for the “chess-results style” card
@@ -147,6 +148,13 @@ function computeStandings(compMatches) {
     const p1Score = p1win ? 1 : 0;
     const p2Score = p2win ? 1 : 0;
 
+    // Elo delta (rated matches only)
+    if (isTrue(m.elo_applied)) {
+    s1.eloDelta += toNum(m.p1_elo_delta);
+    s2.eloDelta += toNum(m.p2_elo_delta);
+    }
+
+
     // opponent rating before match (rated matches only are meaningful)
     const p1OppR = toNum(m.p2_elo_before);
     const p2OppR = toNum(m.p1_elo_before);
@@ -163,13 +171,14 @@ function computeStandings(compMatches) {
     s1.red += toNum(m.player1_red);
     if (isTrue(m.elo_applied)) { s1.oppRatings.push(p1OppR); s1.scores.push(p1Score); }
     s1.results.push({
-      no: idx + 1,
-      date: m.date,
-      opp: p2,
-      oppRating: isTrue(m.elo_applied) ? p1OppR : null,
-      res: p1win ? "W" : "L",
-      games: `${toNum(m.player1_games)}–${toNum(m.player2_games)}`,
-      slaps: `${toNum(m.player1_slaps)}–${toNum(m.player2_slaps)}`
+        no: idx + 1,
+        date: m.date,
+        opp: p2,
+        oppRating: isTrue(m.elo_applied) ? p1OppR : null,
+        res: p1win ? "W" : "L",
+        games: `${toNum(m.player1_games)}–${toNum(m.player2_games)}`,
+        slaps: `${toNum(m.player1_slaps)}–${toNum(m.player2_slaps)}`,
+        eloDelta: isTrue(m.elo_applied) ? toNum(m.p1_elo_delta) : null
     });
 
     // update p2
@@ -184,13 +193,14 @@ function computeStandings(compMatches) {
     s2.red += toNum(m.player2_red);
     if (isTrue(m.elo_applied)) { s2.oppRatings.push(p2OppR); s2.scores.push(p2Score); }
     s2.results.push({
-      no: idx + 1,
-      date: m.date,
-      opp: p1,
-      oppRating: isTrue(m.elo_applied) ? p2OppR : null,
-      res: p2win ? "W" : "L",
-      games: `${toNum(m.player2_games)}–${toNum(m.player1_games)}`,
-      slaps: `${toNum(m.player2_slaps)}–${toNum(m.player1_slaps)}`
+        no: idx + 1,
+        date: m.date,
+        opp: p1,
+        oppRating: isTrue(m.elo_applied) ? p2OppR : null,
+        res: p2win ? "W" : "L",
+        games: `${toNum(m.player2_games)}–${toNum(m.player1_games)}`,
+        slaps: `${toNum(m.player2_slaps)}–${toNum(m.player1_slaps)}`,
+        eloDelta: isTrue(m.elo_applied) ? toNum(m.p2_elo_delta) : null
     });
   });
 
@@ -246,6 +256,7 @@ function renderStandings(standings, flagMap) {
             <th>Games F/A</th>
             <th>Slaps F/A</th>
             <th>Tournament Rating</th>
+            <th>ΔElo</th>
             <th>🟨</th>
             <th>🟥</th>
           </tr>
@@ -263,6 +274,7 @@ function renderStandings(standings, flagMap) {
               <td>${s.gamesFor}/${s.gamesAgainst}</td>
               <td>${s.slapsFor}/${s.slapsAgainst}</td>
               <td>${s.perf != null ? Math.round(s.perf) : "-"}</td>
+              <td>${(s.eloDelta >= 0 ? "+" : "") + s.eloDelta.toFixed(1)}</td>
               <td>${s.yellow}</td>
               <td>${s.red}</td>
             </tr>
@@ -320,6 +332,7 @@ function renderPlayerCards(standings, flagMap) {
             </td>
         <td>${r.oppRating != null ? Math.round(r.oppRating) : "-"}</td>
         <td>${r.res}</td>
+        <td>${r.eloDelta == null ? "-" : (r.eloDelta >= 0 ? "+" : "") + r.eloDelta.toFixed(1)}</td>
         <td>${r.games}</td>
         <td>${r.slaps}</td>
       </tr>
@@ -328,8 +341,9 @@ function renderPlayerCards(standings, flagMap) {
     return `
       <div class="card" style="margin: 12px 0;">
         <p>
-          <strong>${s.player}</strong> — ${s.wins}–${s.losses}
-          &nbsp; | &nbsp; Performance Rating: ${s.perf != null ? Math.round(s.perf) : "-"}
+        <strong>${s.player}</strong> — ${s.wins}–${s.losses}
+        &nbsp; | &nbsp; Perf: ${s.perf != null ? Math.round(s.perf) : "-"}
+        &nbsp; | &nbsp; ΔElo: ${(s.eloDelta >= 0 ? "+" : "") + s.eloDelta.toFixed(1)}
         </p>
         <div class="elo-table-wrapper">
           <table class="elo-table">
@@ -340,6 +354,7 @@ function renderPlayerCards(standings, flagMap) {
                 <th>Opponent</th>
                 <th>Opp Rtg</th>
                 <th>Res</th>
+                <th>ΔElo</th>
                 <th>Games</th>
                 <th>Slaps</th>
               </tr>
