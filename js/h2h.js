@@ -215,39 +215,63 @@ function showLoading(show) {
 (async function init() {
   showLoading(true);
 
-  const [matches, players] = await Promise.all([fetchMatches(), fetchPlayers()]);
+  const [matches, players] = await Promise.all([
+    fetchMatches(),
+    fetchPlayers()
+  ]);
 
-  // Fill datalist
-  const dl = document.getElementById("playersList");
-  if (dl && Array.isArray(players)) {
-    dl.innerHTML = players.map(n => `<option value="${n}"></option>`).join("");
+  const selA = document.getElementById("pA");
+  const selB = document.getElementById("pB");
+  const ratedOnly = document.getElementById("ratedOnly");
+  const swapBtn = document.getElementById("swapPlayers");
+
+  // Sort players alphabetically
+  const sortedPlayers = [...players].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  // Populate dropdowns
+  function populateSelect(select) {
+    select.innerHTML =
+      `<option value="">Select player...</option>` +
+      sortedPlayers.map(name =>
+        `<option value="${name}">${name}</option>`
+      ).join("");
   }
 
-  const btn = document.getElementById("runH2H");
-  const inpA = document.getElementById("pA");
-  const inpB = document.getElementById("pB");
-  const ratedOnly = document.getElementById("ratedOnly");
+  populateSelect(selA);
+  populateSelect(selB);
 
   function run() {
-    const a = (inpA.value || "").trim();
-    const b = (inpB.value || "").trim();
+    const a = selA.value;
+    const b = selB.value;
+
     if (!a || !b || a === b) {
-      document.getElementById("h2hSummary").innerHTML =
-        `<p style="color:red;">Choose two different players.</p>`;
+      document.getElementById("h2hSummary").innerHTML = "";
       document.getElementById("h2hMatches").innerHTML = "";
       return;
     }
 
     const h2h = headToHeadMatches(matches, a, b, !!ratedOnly.checked);
     const stats = computeH2HStats(h2h, a, b);
+
     renderSummary(a, b, !!ratedOnly.checked, stats);
     renderMatchesTable(h2h, a);
   }
 
-  btn.addEventListener("click", run);
-
-  // Optional: run automatically when toggling ratedOnly
+  // Auto-run when selection changes
+  selA.addEventListener("change", run);
+  selB.addEventListener("change", run);
   ratedOnly.addEventListener("change", run);
+
+  // Swap button
+  swapBtn.addEventListener("click", () => {
+    const temp = selA.value;
+    selA.value = selB.value;
+    selB.value = temp;
+    run();
+  });
 
   showLoading(false);
 })();
+
