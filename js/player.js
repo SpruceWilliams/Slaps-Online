@@ -90,56 +90,131 @@ function renderEloChart(player, ratedMineChrono) {
   points.push(getPlayerEloBefore(ratedMineChrono[0], player));
   for (const m of ratedMineChrono) points.push(getPlayerEloAfter(m, player));
 
-  const min = Math.min(...points);
-  const max = Math.max(...points);
+  const minData = Math.min(...points);
+  const maxData = Math.max(...points);
 
-  // padding + avoid flatline division by zero
-  const pad = 30;
-  const span = (max - min) || 1;
+  // --- Chart layout ---
+  const padL = 55;   // left padding for y labels
+  const padR = 15;
+  const padT = 25;
+  const padB = 45;   // bottom padding for x labels
 
-  const xStep = (w - pad * 2) / (points.length - 1);
-  const yMap = (v) => (h - pad) - ((v - min) / span) * (h - pad * 2);
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
 
-  // axes
-  ctx.strokeStyle = "#ccc";
+  // --- Y ticks every 50 Elo ---
+  const stepY = 50;
+  const yMinTick = Math.floor(minData / stepY) * stepY;
+  const yMaxTick = Math.ceil(maxData / stepY) * stepY;
+  const spanY = (yMaxTick - yMinTick) || 1;
+
+  const xMap = (i) => padL + (i / (points.length - 1)) * plotW;
+  const yMap = (v) => padT + (1 - (v - yMinTick) / spanY) * plotH;
+
+  // Background
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+
+  // --- Grid + Y axis ticks/labels ---
+  ctx.font = "12px sans-serif";
+  ctx.fillStyle = "#111";
+  ctx.strokeStyle = "#e0e0e0";
   ctx.lineWidth = 1;
+
+  for (let yVal = yMinTick; yVal <= yMaxTick; yVal += stepY) {
+    const y = yMap(yVal);
+
+    // gridline
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(w - padR, y);
+    ctx.stroke();
+
+    // tick label
+    ctx.fillText(String(yVal), 8, y + 4);
+  }
+
+  // --- Axes (dark) ---
+  ctx.strokeStyle = "#777";
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.moveTo(pad, pad);
-  ctx.lineTo(pad, h - pad);
-  ctx.lineTo(w - pad, h - pad);
+  // y-axis
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, h - padB);
+  // x-axis
+  ctx.lineTo(w - padR, h - padB);
   ctx.stroke();
 
-  // line
+  // --- X ticks (match count) ---
+  const maxMatches = points.length - 1; // because points includes the starting "before"
+  const xTickStep = maxMatches <= 10 ? 1 : (maxMatches <= 40 ? 5 : 10);
+
+  ctx.fillStyle = "#111";
+  ctx.strokeStyle = "#777";
+  ctx.lineWidth = 1;
+
+  for (let m = 0; m <= maxMatches; m += xTickStep) {
+    const x = xMap(m);
+
+    // tick mark
+    ctx.beginPath();
+    ctx.moveTo(x, h - padB);
+    ctx.lineTo(x, h - padB + 5);
+    ctx.stroke();
+
+    // tick label
+    const label = String(m);
+    const labelW = ctx.measureText(label).width;
+    ctx.fillText(label, x - labelW / 2, h - padB + 18);
+  }
+
+  // --- Axis labels ---
+  ctx.font = "13px sans-serif";
+  ctx.fillStyle = "#111";
+
+  // x label
+  const xLabel = "Rated matches played";
+  const xLabelW = ctx.measureText(xLabel).width;
+  ctx.fillText(xLabel, padL + (plotW - xLabelW) / 2, h - 10);
+
+  // y label (rotated)
+  const yLabel = "Elo";
+  ctx.save();
+  ctx.translate(15, padT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(yLabel, -ctx.measureText(yLabel).width / 2, 0);
+  ctx.restore();
+
+  // --- Line ---
   ctx.strokeStyle = "#111";
   ctx.lineWidth = 2;
   ctx.beginPath();
   points.forEach((v, i) => {
-    const x = pad + i * xStep;
+    const x = xMap(i);
     const y = yMap(v);
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
 
-  // points
+  // --- Points ---
   ctx.fillStyle = "#111";
   points.forEach((v, i) => {
-    const x = pad + i * xStep;
+    const x = xMap(i);
     const y = yMap(v);
     ctx.beginPath();
     ctx.arc(x, y, 3, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  // labels
-  ctx.fillStyle = "#111";
+  // Optional: min/max text at top
   ctx.font = "12px sans-serif";
-  ctx.fillText(`Min: ${Math.round(min)}`, pad, pad - 10);
-  ctx.fillText(`Max: ${Math.round(max)}`, w - pad - 80, pad - 10);
-
-  ctx.fillText(`${Math.round(points[0])}`, pad, yMap(points[0]) - 6);
-  ctx.fillText(`${Math.round(points[points.length - 1])}`, w - pad - 40, yMap(points[points.length - 1]) - 6);
+  ctx.fillStyle = "#111";
+  ctx.fillText(`Min: ${Math.round(minData)}`, padL, 16);
+  const maxText = `Max: ${Math.round(maxData)}`;
+  ctx.fillText(maxText, w - padR - ctx.measureText(maxText).width, 16);
 }
+
 
 
 
