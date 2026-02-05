@@ -257,3 +257,7 @@ fieldset, .form-group, form, main {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.hint { display:block; margin-top:4px; font-size:0.9em; }
+.hint.warn { color:#b45309; }   /* amber-ish */
+.hint.ok { color:#166534; }     /* green-ish */

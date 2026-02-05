@@ -25,18 +25,20 @@
                             <!--Input for Game Name-->
                             <label for="date">Date of Match: <input required type="date" id="date" name="date"> </label>
                             
-
-                            <!--Input for Player 1 Full Name-->
+                            <!--Input for Player 1 Name-->
                             <label for="player1fullname">
                             Player 1 Full Name:
                             <input required type="text" id="player1fullname" name="player1" list="playersList">
+                            <small id="p1Hint" class="hint"></small>
                             </label>
 
-                            <!--Input for Player 2 Full Name-->
+                            <!--Input for Player 2 Name-->
                             <label for="player2fullname">
                             Player 2 Full Name:
                             <input required type="text" id="player2fullname" name="player2" list="playersList">
+                            <small id="p2Hint" class="hint"></small>
                             </label>
+
                     </div>
                 </fieldset>
 
@@ -110,24 +112,31 @@
                 <button type="submit" id="submitBtn">Submit Match</button>
             </form>
 
+            <!-- Player datalist -->
             <datalist id="playersList"></datalist>
 
-            <!--Test-->
             <script>
-            // JSONP callback must be GLOBAL for Apps Script to call it
-            window.handlePlayersList = function(names) {
+            // Global cache used for validation + similarity checks
+            window.playersCache = [];
+
+            // Single JSONP callback (GLOBAL)
+            window.handlePlayersList = function (names) {
+                window.playersCache = Array.isArray(names) ? names.filter(Boolean) : [];
+
                 const dl = document.getElementById("playersList");
+                if (dl) {
                 dl.innerHTML = "";
-
-                (names || []).forEach(n => {
-                const opt = document.createElement("option");
-                opt.value = n;
-                dl.appendChild(opt);
+                window.playersCache.forEach((n) => {
+                    const opt = document.createElement("option");
+                    opt.value = n;
+                    dl.appendChild(opt);
                 });
+                }
 
-                console.log("Players loaded:", dl.children.length); // <-- debug
+                console.log("Players loaded:", window.playersCache.length);
             };
 
+            // Load players via JSONP
             (function loadPlayers() {
                 const base = window.API && window.API.BASE;
                 if (!base) {
@@ -135,112 +144,330 @@
                 return;
                 }
 
-                // cache-bust so you don't get an old script response
+                // cache-bust to avoid stale responses
                 const script = document.createElement("script");
                 script.src = `${base}?action=players&callback=handlePlayersList&_=${Date.now()}`;
                 script.onerror = () => console.error("Players JSONP failed to load");
                 document.head.appendChild(script);
             })();
             </script>
-            <!-- Script -->
+
             <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    // --- Guard: config.js must be loaded ---
-                    if (!window.API || !window.API.BASE) {
-                    alert("API config not loaded (js/config.js). Check script path.");
-                    return;
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- Guard: config.js must be loaded ---
+                if (!window.API || !window.API.BASE) {
+                alert("API config not loaded (js/config.js). Check script path.");
+                return;
+                }
+
+                // --- Elements ---
+                const formEl = document.getElementById("matchform");
+                const btn = document.getElementById("submitBtn");
+                const requestIdInput = document.getElementById("request_id");
+
+                const p1Input = document.getElementById("player1fullname");
+                const p2Input = document.getElementById("player2fullname");
+                const winnerSelect = document.querySelector("select[name='winnername']");
+
+                // Optional hint elements (safe if missing)
+                const p1Hint = document.getElementById("p1Hint");
+                const p2Hint = document.getElementById("p2Hint");
+
+                // --- Set form action from config.js ---
+                formEl.action = window.API.BASE;
+
+                // --- Winner dropdown updates ---
+                function updateWinnerOptions() {
+                winnerSelect.innerHTML = `
+                    <option value="">Select winner</option>
+                    <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
+                    <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
+                `;
+                }
+                p1Input.addEventListener("input", updateWinnerOptions);
+                p2Input.addEventListener("input", updateWinnerOptions);
+                p1Input.addEventListener("change", updateWinnerOptions);
+                p2Input.addEventListener("change", updateWinnerOptions);
+
+                // --- Name matching helpers ---
+                const NICKNAMES = new Map([
+                    ["will", "william"],
+                    ["joe", "joseph"],
+                    ["dan", "daniel"],
+                    ["jonny", "jonathan"]
+                ]);
+
+                function tokenizeName(s) {
+                    return normalizeName(s)
+                        .split(" ")
+                        .filter(Boolean);
+                }
+
+                function expandNick(token) {
+                    return NICKNAMES.get(token) || token;
+                }
+
+                function tokenSimilarity(aTok, bTok) {
+                // Exact/prefix match gets big boost
+                    if (!aTok || !bTok) return 0;
+                    if (aTok === bTok) return 1;
+                    if (bTok.startsWith(aTok) || aTok.startsWith(bTok)) return 0.92; // will ~ william
+                    // fallback to levenshtein score
+                    return similarityScore(aTok, bTok);
+                }
+
+                function nameMatchScore(inputName, candidateName) {
+                    const a = tokenizeName(inputName).map(expandNick);
+                    const b = tokenizeName(candidateName).map(expandNick);
+                    if (a.length === 0 || b.length === 0) return 0;
+
+                    // last token is treated as last name (works for most cases)
+                    const aLast = a[a.length - 1];
+                    const bLast = b[b.length - 1];
+
+                    const lastScore = tokenSimilarity(aLast, bLast);
+
+                    // If last names are not close, don’t suggest at all
+                    if (lastScore < 0.85) return 0;
+
+                    // best first-name score among remaining tokens
+                    const aFirst = a[0];
+                    const bFirst = b[0];
+                    const firstScore = tokenSimilarity(aFirst, bFirst);
+
+                    // Weight last name heavily so shared first names don’t cause chaos
+                    return 0.65 * lastScore + 0.35 * firstScore;
+                }
+
+                function normalizeName(s) {
+                    return (s || "")
+                        .trim()
+                        .toLowerCase()
+                        .replace(/\s+/g, " ")
+                        .replace(/[’']/g, "'");
+                }
+
+                function levenshtein(a, b) {
+                    a = a || "";
+                    b = b || "";
+                    const m = a.length,
+                        n = b.length;
+                    if (m === 0) return n;
+                    if (n === 0) return m;
+
+                    const dp = Array.from({ length: m + 1 }, () =>
+                        new Array(n + 1).fill(0)
+                    );
+                    for (let i = 0; i <= m; i++) dp[i][0] = i;
+                    for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+                    for (let i = 1; i <= m; i++) {
+                        for (let j = 1; j <= n; j++) {
+                        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                        dp[i][j] = Math.min(
+                            dp[i - 1][j] + 1,
+                            dp[i][j - 1] + 1,
+                            dp[i - 1][j - 1] + cost
+                        );
+                        }
+                    }
+                    return dp[m][n];
+                }
+
+                function similarityScore(a, b) {
+                    const A = normalizeName(a);
+                    const B = normalizeName(b);
+                    if (!A || !B) return 0;
+                    const dist = levenshtein(A, B);
+                    return 1 - dist / Math.max(A.length, B.length);
+                }
+
+                function findBestMatch(inputName, players) {
+                    const x = normalizeName(inputName);
+                    if (!x) return null;
+
+                    // exact match (case/space-insensitive)
+                    const exact = players.find(p => normalizeName(p) === x);
+                    if (exact) return { type: "exact", name: exact, score: 1 };
+
+                    // score everyone using token-aware scoring
+                    const scored = players
+                        .map(p => ({ name: p, score: nameMatchScore(inputName, p) }))
+                        .sort((a, b) => b.score - a.score);
+
+                    const best = scored[0];
+                    const second = scored[1];
+
+                    if (!best) return null;
+
+                    // “sensitivity”:
+                    // lower this to suggest more often, but keep the ambiguity guard below
+                    const SUGGEST_THRESHOLD = 0.80;
+
+                    // Ambiguity guard: only suggest if best is clearly better than second-best
+                    const MIN_GAP = 0.06; // increase if you want fewer suggestions when names collide
+
+                    if (best.score >= SUGGEST_THRESHOLD) {
+                        if (!second || (best.score - second.score) >= MIN_GAP) {
+                        return { type: "fuzzy", name: best.name, score: best.score };
+                        }
+                        // too ambiguous: don't auto-suggest a single person
+                        return { type: "ambiguous", options: scored.slice(0, 5) };
                     }
 
-                    // --- Elements ---
-                    const formEl = document.getElementById("matchform");
-                    const btn = document.getElementById("submitBtn");
-                    const requestIdInput = document.getElementById("request_id");
+                    return null;
+                }
 
-                    const p1Input = document.getElementById("player1fullname");
-                    const p2Input = document.getElementById("player2fullname");
-                    const winnerSelect = document.querySelector("select[name='winnername']");
-                    const datalistEl = document.getElementById("playersList");
 
-                    // --- Set form action from config.js ---
-                    formEl.action = window.API.BASE;
+                function setHint(el, text, kind) {
+                    if (!el) return;
+                    el.textContent = text || "";
+                    el.classList.remove("warn", "ok");
+                    if (kind) el.classList.add(kind);
+                }
 
-                    // --- Winner dropdown updates ---
-                    function updateWinnerOptions() {
-                    winnerSelect.innerHTML = `
-                        <option value="">Select winner</option>
-                        <option value="${p1Input.value}">${p1Input.value || "Player 1"}</option>
-                        <option value="${p2Input.value}">${p2Input.value || "Player 2"}</option>
-                    `;
+                function validateOrConfirmPlayer(inputEl, hintEl) {
+                    const typed = (inputEl.value || "").trim();
+                    if (!typed) return false;
+
+                    const players = window.playersCache || [];
+                    if (players.length === 0) {
+                        // Don’t block user if list failed to load
+                        setHint(hintEl, "", null);
+                        return true;
                     }
-                    p1Input.addEventListener("input", updateWinnerOptions);
-                    p2Input.addEventListener("input", updateWinnerOptions);
-                    p1Input.addEventListener("change", updateWinnerOptions);
-                    p2Input.addEventListener("change", updateWinnerOptions);
 
-                    // --- JSONP callback for players list ---
-                    window.handlePlayersList = function(names) {
-                    datalistEl.innerHTML = "";
-                    (names || []).forEach(name => {
-                        const opt = document.createElement("option");
-                        opt.value = name;
-                        datalistEl.appendChild(opt);
-                    });
-                    };
+                    const best = findBestMatch(typed, players);
 
-                    // --- Load players via JSONP ---
-                    const playersScript = document.createElement("script");
-                    playersScript.src = `${window.API.BASE}?action=players&callback=handlePlayersList`;
-                    playersScript.onerror = () => {
-                    console.error("Failed to load players list JSONP.");
-                    };
-                    document.head.appendChild(playersScript);
+                    if (best && best.type === "exact") {
+                        setHint(hintEl, "Recognized player.", "ok");
+                        return true;
+                    }
 
-                    // --- One-shot submit + redirect ---
-                    let submitting = false;
+                    // tweak this threshold if it nags too often
+                    const SUGGEST_THRESHOLD = 0.82;
 
-                    formEl.addEventListener("submit", async (e) => {
-                    e.preventDefault();
-                    if (submitting) return;
+                    if (best && best.type === "fuzzy") {
+                        setHint(hintEl, `Did you mean "${best.name}"?`, "warn");
 
-                    submitting = true;
-                    btn.disabled = true;
-                    const oldText = btn.textContent;
-                    btn.textContent = "Submitting...";
+                        const useSuggestion = confirm(
+                        `Player "${typed}" is not an exact match.\n\nDid you mean "${best.name}"?\n\nOK = use "${best.name}"\nCancel = keep "${typed}"`
+                        );
 
-                    // Set idempotency token
-                    requestIdInput.value =
-                        (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
-
-                    try {
-                        const resp = await fetch(formEl.action, {
-                        method: "POST",
-                        body: new FormData(formEl),
-                        });
-
-                        // Helpful debugging if Apps Script returns HTML instead of JSON
-                        const text = await resp.text();
-                        let result;
-                        try {
-                        result = JSON.parse(text);
-                        } catch {
-                        throw new Error("Server did not return JSON. Response was: " + text.slice(0, 120));
+                        if (useSuggestion) {
+                        inputEl.value = best.name;
+                        setHint(hintEl, "Updated to existing player.", "ok");
+                        return true;
                         }
 
-                        if (!result.success) throw new Error(result.error || "Unknown error");
+                        const createNew = confirm(
+                        `"${typed}" isn’t in the player list.\n\nCreate new player "${typed}"?`
+                        );
+                        if (!createNew) return false;
 
-                        const base = location.pathname.includes("/Slaps-Online/") ? "/Slaps-Online" : "";
-                        window.location.href = `${base}/submitted.html?matchId=${encodeURIComponent(result.matchId)}`;
-
-                    } catch (err) {
-                        alert("Submission failed: " + err.message);
-                        submitting = false;
-                        btn.disabled = false;
-                        btn.textContent = oldText;
+                        setHint(hintEl, "New player will be created.", "warn");
+                        return true;
                     }
+
+                    if (best && best.type === "ambiguous") {
+                        // Don’t annoy user with a wrong suggestion; show top options and then ask "create?"
+                        const choices = best.options.map(o => `- ${o.name}`).join("\n");
+                        const proceed = confirm(
+                            `That name is close to multiple existing players:\n\n${choices}\n\nOK = keep "${typed}" (create new)\nCancel = go back and edit`
+                        );
+                        if (!proceed) return false;
+                        setHint(hintEl, "New player will be created.", "warn");
+                        return true;
+                    }
+
+                    setHint(hintEl, `"${typed}" not found in existing players.`, "warn");
+
+                    const create = confirm(
+                        `"${typed}" isn’t in the player list.\n\nCreate new player "${typed}"?`
+                    );
+                    if (!create) return false;
+
+                    setHint(hintEl, "New player will be created.", "warn");
+                    return true;
+                }
+
+                // Run checks when leaving fields
+                p1Input.addEventListener("blur", () =>
+                validateOrConfirmPlayer(p1Input, p1Hint)
+                );
+                p2Input.addEventListener("blur", () =>
+                validateOrConfirmPlayer(p2Input, p2Hint)
+                );
+
+                // --- One-shot submit + redirect ---
+                let submitting = false;
+
+                formEl.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                if (submitting) return;
+
+                // Prevent p1 == p2 (case/space-insensitive)
+                if (
+                    normalizeName(p1Input.value) &&
+                    normalizeName(p1Input.value) === normalizeName(p2Input.value)
+                ) {
+                    alert("Player 1 and Player 2 cannot be the same person.");
+                    return;
+                }
+
+                // Confirm/validate both players before submitting
+                const ok1 = validateOrConfirmPlayer(p1Input, p1Hint);
+                if (!ok1) return;
+
+                const ok2 = validateOrConfirmPlayer(p2Input, p2Hint);
+                if (!ok2) return;
+
+                submitting = true;
+                btn.disabled = true;
+                const oldText = btn.textContent;
+                btn.textContent = "Submitting...";
+
+                // Set idempotency token
+                requestIdInput.value = crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random()}`;
+
+                try {
+                    const resp = await fetch(formEl.action, {
+                    method: "POST",
+                    body: new FormData(formEl),
                     });
+
+                    const text = await resp.text();
+                    let result;
+                    try {
+                    result = JSON.parse(text);
+                    } catch {
+                    throw new Error(
+                        "Server did not return JSON. Response was: " + text.slice(0, 120)
+                    );
+                    }
+
+                    if (!result.success) throw new Error(result.error || "Unknown error");
+
+                    const base = location.pathname.includes("/Slaps-Online/")
+                    ? "/Slaps-Online"
+                    : "";
+                    window.location.href = `${base}/submitted.html?matchId=${encodeURIComponent(
+                    result.matchId
+                    )}`;
+                } catch (err) {
+                    alert("Submission failed: " + err.message);
+                    submitting = false;
+                    btn.disabled = false;
+                    btn.textContent = oldText;
+                }
                 });
+
+                // Initialize winner options on load
+                updateWinnerOptions();
+            });
             </script>
 
-    </script>
 
     </body>
