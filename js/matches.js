@@ -21,8 +21,8 @@ function renderMatches(containerId, matches) {
   console.log("Rendering matches:", matches);
 
   container.innerHTML = `
-    <div class="matches-table-wrapper">
-      <table class="matches-table">
+    <div class="table-wrap">
+      <table class="table matches-table">
         <thead>
           <tr>
             <th>Match ID</th>

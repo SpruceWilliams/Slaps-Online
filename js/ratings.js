@@ -22,38 +22,43 @@ function renderRatings(containerId, ratings) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="elo-table-wrapper">
-      <table class="elo-table">
+    <div class="table-wrap">
+      <table class="table table-compact">
         <thead>
           <tr>
-            <th>#</th>
+            <th class="col-rank">#</th>
             <th>Player</th>
-            <th>Elo</th>
-            <th>Games Played</th>
-            <th>Form (last 5)</th>
+            <th class="col-num">Elo</th>
+            <th class="col-num">Games</th>
+            <th class="col-form">Form (last 5)</th>
           </tr>
         </thead>
         <tbody>
           ${ratings.map((r, i) => `
             <tr>
-              <td>${i + 1}</td>
-                <td>
+              <td class="col-rank">${i + 1}</td>
+              <td>
+                <span class="player-cell">
                   <span class="flag">${countryCodeToFlag(r.flag || "GB")}</span>
                   <a class="player-link" href="player.html?player=${encodeURIComponent(r.player_name)}">
                     ${r.player_name}
                   </a>
-                </td>
-              <td>${Math.round(r.elo)}</td>
-              <td>${r.games_played}</td>
-              <td class="form5">${r.form5 || "-----"}</td>
+                </span>
+              </td>
+              <td class="col-num">${Math.round(r.elo)}</td>
+              <td class="col-num">${r.games_played}</td>
+              <td class="col-form"><span class="form5">${r.form5 || "-----"}</span></td>
             </tr>
           `).join("")}
         </tbody>
       </table>
     </div>
   `;
+
   if (window.twemoji) {
     window.twemoji.parse(container, { folder: "svg", ext: ".svg" });
   }
 }
+
+
 
