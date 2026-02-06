@@ -92,7 +92,11 @@ hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
 
 /* Make long words/URLs never force the layout wider */
-h1, h2, h3, p, a { overflow-wrap: anywhere; }
+/* Only apply aggressive wrapping to prose content */
+.prose h1, .prose h2, .prose h3, .prose p, .prose a {
+  overflow-wrap: anywhere;
+}
+
 
 /* ---------------------------------------------------------
    3) Layout helpers
@@ -271,6 +275,20 @@ h1, h2, h3, p, a { overflow-wrap: anywhere; }
   cursor: pointer;
 }
 .player-link:hover { text-decoration: underline; }
+
+/* Don’t allow character-by-character wrapping inside tables */
+.table a,
+.player-link {
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+}
+
+/* Ratings table: prefer horizontal scroll on small screens */
+#elo-top .table {
+  min-width: 520px; /* tweak if needed */
+}
+
 
 /* Twemoji flag sizing (prevents layout shifts) */
 .flag {
