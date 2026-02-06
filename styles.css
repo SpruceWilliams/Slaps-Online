@@ -90,6 +90,15 @@ hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 /* Optional: reserve height so content doesn’t “jump” while loading */
 #elo-top, #matches-top { min-height: 260px; }
 
+/* Force the ratings table to stretch even if JS forgot class="table" */
+#elo-top table {
+  width: 100%;
+}
+#elo-top .table-wrap {
+  width: 100%;
+}
+
+
 /* Make long words/URLs never force the layout wider */
 h1, h2, h3, p, a { overflow-wrap: anywhere; }
 
