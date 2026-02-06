@@ -1,62 +1,328 @@
-/*
-Colour Scheme Hex Codes
-Dark Green: #033220
-Forest Green: #024818
-Lighter Green: #026402
-Cherry Blossom Pink: #FFB7C6
-Charm Pink: #E78FAC
-Darker Pink: #D7789F
-*/
+/* =========================================================
+   Slaps Online – styles.css
+   Dark mode default (light mode via [data-theme="light"])
+   ========================================================= */
 
+/* ---------------------------------------------------------
+   0) Brand reference colors (not used directly; for memory)
+   Dark Green: #033220
+   Forest Green: #024818
+   Lighter Green: #026402
+   Cherry Blossom Pink: #FFB7C6
+   Charm Pink: #E78FAC
+   Darker Pink: #D7789F
+   --------------------------------------------------------- */
 
+/* ---------------------------------------------------------
+   1) Theme tokens (CSS variables)
+   --------------------------------------------------------- */
+:root {
+  --bg: #0b0f14;
+  --surface: #101826;
+  --surface-2: #0f172a;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.08);
 
-h1{
-    color: #D7789F;
+  /* accents */
+  --green: #22c55e;
+  --pink: #ec4899;
+
+  /* layout */
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  --radius: 18px;
+  --maxw: 1100px;
 }
 
+:root[data-theme="light"] {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --text: #111827;
+  --muted: #4b5563;
+  --border: rgba(17, 24, 39, 0.12);
+
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------------------------------------------------------
+   2) Base / reset
+   --------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+/* Prevent layout shift when vertical scrollbar appears */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Prevent page-level horizontal scrolling (tables should scroll in wrappers) */
+html, body { max-width: 100%; overflow-x: clip; }
+@supports not (overflow: clip) {
+  html, body { overflow-x: hidden; }
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans",
+               "Apple Color Emoji","Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+a { color: var(--pink); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1 { color: var(--pink); margin: 0 0 12px; }
+h2 { font-size: 1.15rem; margin: 0 0 10px; }
+h3 { font-size: 1.0rem; margin: 0 0 8px; }
+p  { margin: 0 0 10px; }
+
+.muted { color: var(--muted); }
+.block { margin-top: 10px; }
 .hidden { display: none; }
-.confirmation {
-  background: #eef9f0;
-  border: 1px solid #024818;
-  padding: 10px;
-  border-radius: 6px;
-  margin-top: 12px;
+
+hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+/* Optional: reserve height so content doesn’t “jump” while loading */
+#elo-top, #matches-top { min-height: 260px; }
+
+/* Make long words/URLs never force the layout wider */
+h1, h2, h3, p, a { overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------
+   3) Layout helpers
+   --------------------------------------------------------- */
+.container {
+  width: min(var(--maxw), calc(100% - 32px));
+  margin: 0 auto;
 }
 
-/* ===== Header ===== */
+.stack { display: grid; gap: 16px; padding: 22px 0 36px; }
+
+.grid-2 { display: grid; gap: 14px; }
+@media (min-width: 800px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------------------------------------------------------
+   4) Header / top bar
+   --------------------------------------------------------- */
 .site-header {
-    background-color: #024818; /* Forest Green */
-    padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .header-inner {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    max-width: 1200px;
-    margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 12px;
+  min-width: 0; /* allow children to shrink */
 }
 
-.site-logo {
-    height: 48px;
-    width: auto;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
+
+.site-logo { height: 32px; width: auto; }
 
 .site-title {
-    color: #FFB7C6; /* Cherry Blossom Pink */
-    font-size: 1.6rem;
-    font-weight: bold;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Push page content away from header */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    padding-left: 10px;
+.badge {
+  display: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 640px) {
+  .badge { display: inline-flex; }
 }
 
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
 
-/* Form Styles */
+/* ---------------------------------------------------------
+   5) Cards
+   --------------------------------------------------------- */
+.card, .subcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-width: 0; /* important for overflow containment */
+}
+
+/* Clip horizontal overflow inside cards (tables scroll inside wrappers) */
+.card { padding: 18px; overflow-x: clip; }
+@supports not (overflow: clip) {
+  .card { overflow-x: hidden; }
+}
+
+.subcard { padding: 14px; box-shadow: none; }
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.link-soft {
+  color: var(--muted);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.link-soft:hover { color: var(--pink); }
+
+/* ---------------------------------------------------------
+   6) Tables (single source of truth)
+   --------------------------------------------------------- */
+
+/* Wrapper: the ONLY horizontal scroller */
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  /* isolate layout so wide content doesn't affect page width */
+  contain: layout paint;
+}
+
+/* Base table styling */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+/* Cells */
+.table th, .table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+}
+
+.table tr:last-child td { border-bottom: none; }
+
+/* Table links */
+.table td a { color: var(--text); font-weight: 600; }
+.table td a:hover { color: var(--pink); }
+
+/* Ratings table (compact) */
+.table-compact th, .table-compact td { padding: 10px 12px; }
+.col-rank { width: 56px; color: var(--muted); }
+.col-num  { width: 110px; text-align: right; }
+.col-form { width: 160px; }
+
+.player-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.player-link {
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+.player-link:hover { text-decoration: underline; }
+
+/* Twemoji flag sizing (prevents layout shifts) */
+.flag {
+  display: inline-flex;
+  width: 22px; /* reserve space before emoji images load */
+  justify-content: center;
+  align-items: center;
+}
+.flag img.emoji, .flag svg {
+  height: 18px;
+  width: 18px;
+  vertical-align: -3px;
+}
+
+/* Form string */
+.form5 {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* Nice hover + zebra (only applies if you use class="table") */
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--surface) 75%, white 4%);
+}
+.table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+/* Matches table: allow it to be very wide inside the wrapper */
+.table.matches-table {
+  width: max-content;
+  max-width: none;
+  min-width: 100%;
+}
+
+/* Matchtable.html: make wrapper a vertical+horizontal viewport */
+#matches-full .table-wrap {
+  max-height: calc(100vh - 220px); /* adjust for header/title */
+  overflow: auto;                  /* both vertical and horizontal */
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+/* Optional: narrow centered table for full rankings page */
+.table-narrow {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------
+   7) Forms (theme-aware)
+   --------------------------------------------------------- */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -65,135 +331,78 @@ body {
 }
 
 form {
-  background: #fff;
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
-
-form {
   font-family: system-ui, sans-serif;
+
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }
 
-label {
-  font-weight: 500;
-}
+label { font-weight: 500; }
 
-input,
-select,
-textarea {
+input, select, textarea {
   padding: 0.5rem;
-  border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
   width: 100%;
-  box-sizing: border-box;
+
+  background: color-mix(in srgb, var(--surface) 85%, black 10%);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
-input:focus {
+input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  border-color: color-mix(in srgb, var(--pink) 55%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pink) 20%, transparent);
 }
 
-input:invalid {
-  border-color: #dc2626;
-}
+input:invalid { border-color: #dc2626; }
 
-/* ELO Table Styles */
-
-.elo-table-wrapper {
-  border: 1px solid #e5e7eb;
+/* ---------------------------------------------------------
+   8) Loading / spinner
+   --------------------------------------------------------- */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin: 10px 0 20px;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
-.elo-table {
-  width: 100%;
-  border-collapse: collapse;
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  border-top: 3px solid var(--pink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  will-change: transform;
 }
 
-.elo-table th,
-.elo-table td {
-  padding: 0.6rem 0.8rem;
-}
-
-.elo-table thead {
-  background: #f3f4f6;
-  font-weight: 600;
-}
-
-
-.elo-table td,
-.elo-table th {
-  white-space: nowrap;
-}
-
-.elo-table th,
-.elo-table td {
-    text-align: center;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 480px) {
-  .elo-table-wrapper {
-    overflow-x: auto;
-  }
+  .spinner { width: 20px; height: 20px; }
 }
 
-.elo-table img.emoji {
-  height: 1em;
-  width: 1em;
-  vertical-align: -0.15em;
-  margin-right: 8px;
-}
-
-
-/* Match Table Styles */
-
-.match-table-wrapper {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.match-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.match-table th,
-.match-table td {
-  padding: 0.6rem 0.8rem;
-}
-
-.match-table thead {
-  background: #f3f4f6;
-  font-weight: 600;
-}
-
-
-.match-table td,
-.match-table th {
-  white-space: nowrap;
-}
-
-.match-table th,
-.match-table td {
-    text-align: center;
-}
-
-@media (max-width: 480px) {
-  .match-table-wrapper {
-    overflow-x: auto;
-  }
-}
-
-/* Form Confirmation Styles */
-
-.hidden {
-  display: none;
+/* ---------------------------------------------------------
+   9) Notifications / confirmation toast
+   --------------------------------------------------------- */
+.confirmation {
+  background: #eef9f0;
+  border: 1px solid #024818;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 12px;
 }
 
 #confirmation {
@@ -210,54 +419,328 @@ input:invalid {
   z-index: 9999;
 }
 
-#confirmation.show {
-  opacity: 1;
-}
+#confirmation.show { opacity: 1; }
 
-fieldset, .form-group, form, main {
-  overflow: visible !important;
-}
-
-.player-link { text-decoration: underline; cursor: pointer; }
-
-.toggle input { margin-right: 8px; }
-
-.toggle-row {
-  margin: 12px 0 16px;
-}
+/* ---------------------------------------------------------
+   10) Misc helpers
+   --------------------------------------------------------- */
+.toggle-row { margin: 12px 0 16px; }
 
 .toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px; /* space between text and checkbox */
+  gap: 8px;
   cursor: pointer;
 }
 
-.loading {
+.toggle input { margin-right: 8px; }
+
+.hint { display: block; margin-top: 4px; font-size: 0.9em; }
+.hint.warn { color: #b45309; } /* amber */
+.hint.ok   { color: #166534; } /* green */
+
+/* Page wrapper (you already have .container and .stack) */
+.page.container { padding: 22px 0 36px; }
+
+/* Card header aligns title + toggle nicely and wraps on mobile */
+.card-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 14px;
-  margin: 10px 0 20px;
-  border: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+/* Make the canvas responsive and remove inline border */
+.chart-wrap {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+#eloChart {
+  display: block;
+  width: 100%;
+  height: 260px; /* keep your desired height */
+}
+
+#eloChart {
+  display: block;
+  width: 100%;
+  height: 260px;
+}
+
+/* ---------------------------------------------------------
+   Prose / long-form reading layout
+   --------------------------------------------------------- */
+.prose {
+  max-width: 78ch;              /* comfortable reading width */
+  margin: 0 auto;               /* center column */
+  padding: 22px;                /* card padding */
+}
+
+.prose h2 {
+  font-size: 1.35rem;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose h3 {
+  font-size: 1.1rem;
+  margin-top: 22px;
+  margin-bottom: 10px;
+}
+
+.prose h4 {
+  font-size: 1.0rem;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+}
+
+.prose p {
+  margin: 0 0 12px;
+  color: color-mix(in srgb, var(--text) 92%, transparent);
+}
+
+.prose ol, .prose ul {
+  margin: 10px 0 14px 1.2rem;
+  padding: 0;
+}
+
+.prose li {
+  margin: 6px 0;
+  color: color-mix(in srgb, var(--text) 90%, transparent);
+}
+
+.prose hr {
+  margin: 18px 0;
+}
+
+/* Inline code / emphasis */
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95em;
+  padding: 0.12em 0.35em;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fafafa;
-  font-size: 14px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
 }
 
-.spinner {
-  width: 18px;
+/* MathJax blocks: prevent overflow, give breathing room */
+.prose mjx-container[jax="CHTML"][display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 10px 0;
+}
+
+/* Image framing */
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 14px auto;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+/* Optional: callout boxes for “Scenario” sections (if you add class) */
+.callout {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  margin: 12px 0 14px;
+}
+
+
+/* Events */
+.event {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.event-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.event-title {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.event-date {
+  font-size: 0.95rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.event-meta > div {
+  margin: 4px 0;
+}
+
+.event-players {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.event-list {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.event-list li {
+  margin: 4px 0;
+}
+
+/* Past events grouped by year */
+.event-year { margin-top: 10px; }
+
+.event-year-title {
+  font-weight: 800;
+  margin: 10px 0 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.event-list-year {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event-item {
+  padding: 8px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.event-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.event-name { font-weight: 650; }
+.rated-event .event-name { font-weight: 850; } /* <-- bold rated */
+
+.event-meta {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 520px) {
+  .event-link { flex-direction: column; align-items: flex-start; }
+  .event-meta { white-space: normal; }
+}
+
+.event-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: var(--green);
+  color: #0b0f14;
+}
+
+.records-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.95rem;
+}
+
+.toggle-label-left,
+.toggle-label-right {
+  opacity: 0.8;
+}
+
+/* Switch container */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+/* Hide default checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Slider background */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+/* Slider knob */
+.slider::before {
+  content: "";
+  position: absolute;
   height: 18px;
-  border: 3px solid #ddd;
-  border-top: 3px solid #111;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  transition: 0.3s;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* When checked */
+.switch input:checked + .slider {
+  background-color: #ff4da6; /* your pink brand */
 }
 
-.hint { display:block; margin-top:4px; font-size:0.9em; }
-.hint.warn { color:#b45309; }   /* amber-ish */
-.hint.ok { color:#166534; }     /* green-ish */
+.switch input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
+/* Optional: subtle hover effect */
+.switch:hover .slider {
+  filter: brightness(1.1);
+}
+
+.leader-row {
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+.leader-rank {
+  font-weight:600;
+  width:24px;
+}
+
+.leader-name {
+  flex:1;
+  margin-left:6px;
+}
+
+.leader-value {
+  font-weight:600;
+}

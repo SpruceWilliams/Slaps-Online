@@ -6,41 +6,48 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<main class="page">
-  <p><a href="index.html">← Back to ratings</a></p>
+  <main class="page container">
+    <div class="stack">
+      <p><a href="ratingtable.html">← Back to ratings</a></p>
 
-  <h1 id="playerTitle">Player</h1>
+      <div class="card">
+        <div class="card-head">
+          <h1 id="playerTitle">Player</h1>
 
-  <div id="loadingIndicator" class="loading">
-    <script>console.log("loadingIndicator found?", !!loading);</script>
-    <div class="spinner"></div>
-    <span>Loading player statistics...</span>
-  </div>
+          <label class="toggle">
+            Include friendlies (non-rated)
+            <input type="checkbox" id="includeFriendlies" />
+          </label>
+        </div>
 
+        <div id="loadingIndicator" class="loading hidden">
+          <div class="spinner"></div>
+          <span>Loading player statistics...</span>
+        </div>
 
-  <!-- Toggle -->
-    <div class="toggle-row">
-    <label class="toggle">
-        Include friendlies (non-rated)
-        <input type="checkbox" id="includeFriendlies" />
-    </label>
+        <div id="playerSummary"></div>
+        <div id="playerExtras"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Elo progression (rated)</h3>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="eloChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Matches</h3>
+        </div>
+        <div id="playerMatches"></div>
+      </div>
     </div>
+  </main>
 
-  <!-- Stats summary -->
-  <div id="playerSummary"></div>
-
-  <h3>Elo progression (rated)</h3>
-    <canvas id="eloChart" width="900" height="260" style="max-width:100%; border:1px solid #ddd; border-radius:8px;"></canvas>
-
-    <div id="playerExtras"></div>
-
-
-  <h3>Matches</h3>
-  <div id="playerMatches"></div>
-</main>
-
-
-  <script src="js/config.js"></script> <!-- wherever API.BASE lives -->
+  <script src="js/config.js"></script>
   <script src="js/player.js"></script>
 </body>
 </html>

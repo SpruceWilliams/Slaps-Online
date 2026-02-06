@@ -1,81 +1,162 @@
 <!--Main File-->
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Slaps Online</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slaps Online</title>
+    <link rel="stylesheet" href="styles.css" />
 
-    <body>
+    <!-- Set theme before paint: default dark, persist choice -->
+    <script>
+      (function () {
+        const saved = localStorage.getItem("theme"); // "dark" | "light" | null
+        document.documentElement.dataset.theme = saved || "dark";
+      })();
+    </script>
+  </head>
 
-        <header class="site-header">
-            <div class="header-inner">
-                <img src="isfpink.svg" alt="ISF Logo" class="site-logo">
-                <span class="site-title">Welcome to the Official Website of Slaps</span>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <img src="isfpink.svg" alt="ISF Logo" class="site-logo" />
+          <span class="site-title">Slaps</span>
+          <span class="badge">International Slaps Federation</span>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+          ☾ / ☀
+        </button>
+      </div>
+    </header>
+
+    <main class="container stack">
+
+      <section class="card">
+        <h2>About Slaps</h2>
+        <p class="muted">
+          Slaps is a simple and fast-paced card game played using the standard 52-card deck. Read the official rulebook <a href="rules_compressed.pdf">here</a> 
+          or instead read a short summary on the <a href="https://www.slapsgame.co.uk/how-to-play.html">official slaps online game</a>, where you can also get a feel for the rules.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Play Slaps Online</h2>
+        <p class="muted">
+          Play Slaps online against other players or bots:
+          <a href="https://www.slapsgame.co.uk/">slapsgame.co.uk</a>
+        </p>
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2>Current World Rankings</h2>
+          <a class="link-soft" href="ratingtable.html">Full rankings →</a>
+        </div>
+        <div id="elo-top" class="block">Loading ratings…</div>
+        <p class="muted" style="margin-top: 12px;">Click a player’s name to see their stats.</p>
+        <p class="muted">
+          Want to see how Elo is calculated? <a href="eloinfo.html">Read here</a>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Comparisons</h2>
+        <p class="muted">
+          <a href="h2h.html">Compare two players' head-to-head or overall stats.</a><br>
+          <a href="records.html">View records such as longest game or the player with the most slaps.</a>
+        </p>
+      </section>
+
+
+      <section class="card">
+        <h2>Official Match Database</h2>
+
+        <div class="grid-2">
+          <div class="subcard">
+            <h3>Submit a Match</h3>
+            <p class="muted">Click <a href="gameform.html">here</a> to submit a match.</p>
+          </div>
+
+          <div class="subcard">
+            <h3>Download Data</h3>
+            <p class="muted"><a href="#" id="downloadRatings">Download ratings (CSV)</a></p>
+            <p class="muted"><a href="#" id="downloadMatches">Download matches (CSV)</a></p>
+          </div>
+        </div>
+
+        <div class="card-head" style="margin-top: 14px;">
+          <h3>Recent Matches</h3>
+          <a class="link-soft" href="matchtable.html">Full match table →</a>
+        </div>
+        <div id="matches-top" class="block">Loading matches…</div>
+      </section>
+
+      <section class="card">
+        <h2>Events</h2>
+        <div class="grid-2">
+          <div class="subcard">
+            <h3>Upcoming</h3>
+
+            <div class="event">
+              <div class="event-head">
+                <div class="event-title">2026 Liebfraumilch ISF National Championships</div>
+                <div class="event-date">Saturday 28 Feb 2026</div>
+              </div>
+
+              <div class="event-meta">
+                <div><strong>Format:</strong> Rated, specific format to be announced once player list is finalised.</div>
+              </div>
+
+              <div class="event-players">
+                <div class="muted" style="margin-bottom:6px;"><strong>Confirmed players (World Ranking)</strong></div>
+                <ul class="event-list">
+                  <li>Daniel Newcombe (1) </li>
+                  <li>Nana Akuoko (2) </li>
+                  <li>William Bruce (4) </li>
+                  <li>George Alexander (6) </li>
+                  <li>Jonathan Hedges (11) </li>
+                  <li>Joseph Pemberton (16) </li>
+                  <li>David McFaull (Unrated) </li>
+                </ul>
+                More players to be confirmed in the coming weeks.
+              </div>
             </div>
-        </header>
+          </div>
 
-            <h2>Play Slaps Online Now!</h2>
+          <div class="subcard">
+            <h3>Past</h3>
+            <div id="recentCompetitions" class="block">
+              <div class="loading">
+                <div class="spinner"></div>
+                <span>Loading past events…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <p>Play Slaps online against other players or bots here: <a href = "https://www.slapsgame.co.uk/"> slapsgame.co.uk </a></p>
+      <section class="card">
+        <h2>Contact</h2>
+        <p class="muted">
+          <a href="mailto:internationalslapsfederation@gmail.com">internationalslapsfederation@gmail.com</a>
+        </p>
+      </section>
+    </main>
 
-            <h2>About Slaps</h2>
+    <script>
+      document.getElementById("themeToggle")?.addEventListener("click", () => {
+        const html = document.documentElement;
+        const next = html.dataset.theme === "dark" ? "light" : "dark";
+        html.dataset.theme = next;
+        localStorage.setItem("theme", next);
+      });
+    </script>
 
-                <p> Read the Official Rulebook <a href="SLAPS.pptx">here</a>.</p>
-
-            <section>
-                <h2>Current World Rankings</h2>
-                <div id="elo-top">Loading ratings…</div>
-            </section>
-
-            <script src="js/config.js" defer></script>
-            <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" defer></script>
-            <script src="js/ratings.js" defer></script>
-            <script src="js/index.js" defer></script>
-
-            <p>Click on a player's name to see their stats.</p>
-
-            <p>See the full rankings <a href="ratingtable.html">here</a></p>
-
-            <p>If you would like to read about how the ratings are calculated, click <a href="eloinfo.html">here</a></p>
-
-            <h2>Head-to-Head Stats</h2>
-
-            <p><a href="h2h.html">Head-to-head comparisons</a></p>
-
-
-            <h2>Official Slaps Database of Matches</h2>
-
-                <h3>Submit a Match</h3>
-                <p>Click <a href="gameform.html">here</a> to submit a match to the official database.</p>
-
-                <section>
-                    <h3>Browse Matches</h3>
-
-                    <div id="matches-top">Loading matches...</div>
-                </section>
-
-            <script src="js/matches.js" defer></script>
-
-            <p>See the full match table <a href="matchtable.html">here</a></p>
-
-                <h3>Download the Match Data</h3>
-
-                <p><a href="#" id="downloadRatings">Download Ratings database as a CSV </a>.</p>
-                <p><a href="#" id="downloadMatches">Download Matches database as a CSV</a></p>
-
-            <h2>Events</h2>
-
-                <h3>Upcoming Events</h3>
-
-                <h3>Past Events</h3>
-
-                    <div id="recentCompetitions"></div>
-
-            <h2>Contact</h2>
-
-            <p>internationalslapsfederation@gmail.com</p>
-
-    </body>
+    <script src="js/config.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" defer></script>
+    <script src="js/ratings.js" defer></script>
+    <script src="js/index.js" defer></script>
+    <script src="js/matches.js" defer></script>
+  </body>
+</html>
