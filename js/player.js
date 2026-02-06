@@ -1,5 +1,26 @@
 // player.js (schema matches your sheet headers exactly)
 
+function resizeCanvasToDisplaySize(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+
+  // CSS pixel size -> real pixel size
+  const width = Math.round(rect.width * dpr);
+  const height = Math.round(rect.height * dpr);
+
+  // Only resize when necessary (prevents flicker)
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  const ctx = canvas.getContext("2d");
+  // Draw in CSS pixels
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, cssW: rect.width, cssH: rect.height };
+}
+
+
 function getPlayerFromURL() {
   const url = new URL(window.location.href);
   return (url.searchParams.get("player") || "").trim();
@@ -74,8 +95,8 @@ function formatDate(value) {
 function renderEloChart(player, ratedMineChrono) {
   const canvas = document.getElementById("eloChart");
   if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width, h = canvas.height;
+
+  const { ctx, cssW: w, cssH: h } = resizeCanvasToDisplaySize(canvas);
 
   ctx.clearRect(0, 0, w, h);
 
@@ -351,7 +372,7 @@ function render(player, stats, currentElo, includeFriendlies) {
 
 
   const longestText = stats.longestMatch
-    ? `${stats.longestMatch.player1} ${toNum(stats.longestMatch.player1_games)}–${toNum(stats.longestMatch.player2_games)} ${stats.longestMatch.player2} (${stats.longestGames} games)`
+    ? `${stats.longestMatch.player1} ${toNum(stats.longestMatch.player1_games)}–${toNum(stats.longestMatch.player2_games)} ${stats.longestMatch.player2} (${stats.longestGames} rounds)`
     : "-";
 
   summary.innerHTML = `
@@ -376,7 +397,7 @@ function render(player, stats, currentElo, includeFriendlies) {
 
       <hr>
 
-      <p><strong>Longest match (total games):</strong> ${longestText}</p>
+      <p><strong>Longest match (total rounds):</strong> ${longestText}</p>
 
       <p><strong>Peak Elo (rated):</strong> ${stats.eloPeak != null ? Math.round(stats.eloPeak) : "-"}</p>
       <p><strong>Lowest Elo (rated):</strong> ${stats.eloLow != null ? Math.round(stats.eloLow) : "-"}</p>
@@ -469,6 +490,7 @@ function render(player, stats, currentElo, includeFriendlies) {
       const includeFriendlies = !!toggle.checked;
       const stats = computeStats(player, matches, includeFriendlies);
       render(player, stats, currentElo, includeFriendlies);
+      window.addEventListener("resize", rerender, { passive: true });
     }
 
     toggle.checked = false;

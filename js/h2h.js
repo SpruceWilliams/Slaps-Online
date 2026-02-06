@@ -142,9 +142,9 @@ function renderOverallComparison(a, b, ratedOnly, aStats, bStats) {
         <tbody>
           <tr><td>Matches (W–L)</td><td>${aStats.played} (${aStats.wins}–${aStats.losses})</td><td>${bStats.played} (${bStats.wins}–${bStats.losses})</td></tr>
 
-          <tr><td>Total games (for/against)</td><td>${aStats.gamesFor}/${aStats.gamesAgainst}</td><td>${bStats.gamesFor}/${bStats.gamesAgainst}</td></tr>
-          <tr><td>% games won</td><td>${(aStats.pctGamesWon*100).toFixed(1)}%</td><td>${(bStats.pctGamesWon*100).toFixed(1)}%</td></tr>
-          <tr><td>Avg games per match (for/against)</td><td>${aStats.avgGamesFor.toFixed(2)}/${aStats.avgGamesAgainst.toFixed(2)}</td><td>${bStats.avgGamesFor.toFixed(2)}/${bStats.avgGamesAgainst.toFixed(2)}</td></tr>
+          <tr><td>Total rounds (for/against)</td><td>${aStats.gamesFor}/${aStats.gamesAgainst}</td><td>${bStats.gamesFor}/${bStats.gamesAgainst}</td></tr>
+          <tr><td>% rounds won</td><td>${(aStats.pctGamesWon*100).toFixed(1)}%</td><td>${(bStats.pctGamesWon*100).toFixed(1)}%</td></tr>
+          <tr><td>Avg rounds per match (for/against)</td><td>${aStats.avgGamesFor.toFixed(2)}/${aStats.avgGamesAgainst.toFixed(2)}</td><td>${bStats.avgGamesFor.toFixed(2)}/${bStats.avgGamesAgainst.toFixed(2)}</td></tr>
 
           <tr><td>Total slaps (for/against)</td><td>${aStats.slapsFor}/${aStats.slapsAgainst}</td><td>${bStats.slapsFor}/${bStats.slapsAgainst}</td></tr>
           <tr><td>% slaps won</td><td>${(aStats.pctSlapsWon*100).toFixed(1)}%</td><td>${(bStats.pctSlapsWon*100).toFixed(1)}%</td></tr>
@@ -152,7 +152,7 @@ function renderOverallComparison(a, b, ratedOnly, aStats, bStats) {
 
           <tr><td>Discipline (🟨/🟥)</td><td>${aStats.yellow}/${aStats.red}</td><td>${bStats.yellow}/${bStats.red}</td></tr>
 
-          <tr><td>Longest match (total games)</td>
+          <tr><td>Longest match (total rounds)</td>
               <td>${aStats.longest ? aStats.longestGames : "-"}</td>
               <td>${bStats.longest ? bStats.longestGames : "-"}</td></tr>
 
@@ -274,7 +274,7 @@ function renderSummary(a, b, ratedOnly, stats) {
   if (!el) return;
 
   const longestText = stats.longest
-    ? `${formatDate(stats.longest.date)} — ${stats.longest.player1} ${toNum(stats.longest.player1_games)}–${toNum(stats.longest.player2_games)} ${stats.longest.player2} (${stats.longestGames} games)`
+    ? `${formatDate(stats.longest.date)} — ${stats.longest.player1} ${toNum(stats.longest.player1_games)}–${toNum(stats.longest.player2_games)} ${stats.longest.player2} (${stats.longestGames} rounds)`
     : "-";
 
   el.innerHTML = `
@@ -284,13 +284,13 @@ function renderSummary(a, b, ratedOnly, stats) {
 
       <hr>
 
-      <p><strong>Games for/against:</strong> ${a}: ${stats.aGamesFor}/${stats.aGamesAgainst} (${(stats.aGameShare*100).toFixed(1)}%) —
+      <p><strong>Rounds for/against:</strong> ${a}: ${stats.aGamesFor}/${stats.aGamesAgainst} (${(stats.aGameShare*100).toFixed(1)}%) —
          ${b}: ${stats.bGamesFor}/${stats.bGamesAgainst} (${(stats.bGameShare*100).toFixed(1)}%)</p>
 
       <p><strong>Slaps for/against:</strong> ${a}: ${stats.aSlapsFor}/${stats.aSlapsAgainst} (${(stats.aSlapShare*100).toFixed(1)}%) —
          ${b}: ${stats.bSlapsFor}/${stats.bSlapsAgainst} (${(stats.bSlapShare*100).toFixed(1)}%)</p>
 
-      <p><strong>Avg per match (games for):</strong> ${a}: ${stats.aAvgGamesFor.toFixed(2)} — ${b}: ${stats.bAvgGamesFor.toFixed(2)}</p>
+      <p><strong>Avg per match (rounds for):</strong> ${a}: ${stats.aAvgGamesFor.toFixed(2)} — ${b}: ${stats.bAvgGamesFor.toFixed(2)}</p>
       <p><strong>Avg per match (slaps for):</strong> ${a}: ${stats.aAvgSlapsFor.toFixed(2)} — ${b}: ${stats.bAvgSlapsFor.toFixed(2)}</p>
 
       <hr>
