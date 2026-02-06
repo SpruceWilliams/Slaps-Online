@@ -302,16 +302,16 @@ function renderRecords(records, ratedOnly) {
 
 
   document.getElementById("recordsMatchTable").innerHTML = `
-    <h3 style="margin:0 0 10px 0;">🤝 Most common matchups</h3>
+    <h3 style="margin:0 0 10px 0;">Most common matchups</h3>
     ${renderMatchups(records.topMatchups)}
 
-    <h3 style="margin-top:22px;">🔥 Highest Slap Matches</h3>
+    <h3 style="margin-top:22px;">Highest Slap Matches</h3>
     ${renderMatchList(records.topSlapMatches, "totalSlaps")}
 
-    <h3 style="margin-top:22px;">🎮 Longest Matches</h3>
+    <h3 style="margin-top:22px;">Longest Matches</h3>
     ${renderMatchList(records.topGameMatches, "totalGames")}
 
-    <h3 style="margin-top:22px;">⚡ Biggest Elo Changes</h3>
+    <h3 style="margin-top:22px;">Biggest Elo Changes</h3>
     ${renderEloChangeList(records.topEloSwings)}
   `;
 }
