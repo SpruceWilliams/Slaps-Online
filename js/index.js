@@ -5,15 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderRatings("elo-top", ratings);
   });
 
-  // Matches (newest 10)
+  // Matches (last 10 by match_id)
   fetchMatches().then(matches => {
 
-    // sort newest first using safe parser
-    const sorted = matches.slice().sort((a, b) => {
-      const da = parseSheetDate(a.date);
-      const db = parseSheetDate(b.date);
-      return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-    });
+    // sort by match_id descending (highest = newest)
+    const sorted = matches.slice().sort((a, b) =>
+      Number(b.match_id) - Number(a.match_id)
+    );
 
     renderMatches("matches-top", sorted.slice(0, 10));
 
